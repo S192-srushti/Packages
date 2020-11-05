@@ -11,6 +11,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  cloud_firestore: ^0.14.2
+  firebase_storage: ^4.0.1
 
 dev_dependencies:
   flutter_test:
