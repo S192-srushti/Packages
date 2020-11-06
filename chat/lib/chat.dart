@@ -296,7 +296,7 @@ Future<void> afterMessageSendActionsForSingleChat(
           "lastMsgTime": DateTime.now().toUtc().millisecondsSinceEpoch,
         });
     //Set pending message for other user...
-    if (documentSnapshot.data()["chattingWith"] == "") {
+    if (documentSnapshot.data()["chattingWith"] != otherUserId) {
       transaction.update(
           FirebaseFirestore.instance
               .collection("users")
@@ -310,7 +310,7 @@ Future<void> afterMessageSendActionsForSingleChat(
     }
 
     //Set pending msg count for other user...
-    if (documentSnapshot.data()["chattingWith"] == "") {
+    if (documentSnapshot.data()["chattingWith"] != otherUserId) {
       int count = documentForGetCount.data()["count"];
       count++;
       transaction.update(
@@ -544,7 +544,8 @@ Future<Stream<QuerySnapshot>> getChats(
 }
 
 //Clear messages for me...
-Future<void> clearMessagesForOnlyOneUser({String currentUserId, String otherUserId}) async {
+Future<void> clearMessagesForOnlyOneUser(
+    {String currentUserId, String otherUserId}) async {
   String chatId =
       getChatId(currentUserId: currentUserId, otherUserId: otherUserId);
   List<dynamic> updatedList = [];
@@ -599,7 +600,8 @@ Future<void> clearMessagesForOnlyOneUser({String currentUserId, String otherUser
 }
 
 //Block unblock user...
-Future<void> blockUnblockUser({String currentUserId, String otherUserId}) async {
+Future<void> blockUnblockUser(
+    {String currentUserId, String otherUserId}) async {
   //Set block unblock in firestore for current user...
   await FirebaseFirestore.instance
       .collection("users")
