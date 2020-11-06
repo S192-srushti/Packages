@@ -122,6 +122,12 @@
       "languageVersion": "2.3"
     },
     {
+      "name": "intl",
+      "rootUri": "file:///Users/appstonelabhachintosh3/flutter/.pub-cache/hosted/pub.dartlang.org/intl-0.16.1",
+      "packageUri": "lib/",
+      "languageVersion": "2.5"
+    },
+    {
       "name": "js",
       "rootUri": "file:///Users/appstonelabhachintosh3/flutter/.pub-cache/hosted/pub.dartlang.org/js-0.6.2",
       "packageUri": "lib/",
@@ -224,7 +230,7 @@
       "languageVersion": "2.7"
     }
   ],
-  "generated": "2020-11-05T10:38:03.792495Z",
+  "generated": "2020-11-05T13:15:34.768643Z",
   "generator": "pub",
   "generatorVersion": "2.10.2"
 }
