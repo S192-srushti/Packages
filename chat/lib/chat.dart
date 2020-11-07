@@ -85,26 +85,28 @@ Future<void> setRecentChatCardForBothUser(
           .doc(currentUserId)
           .collection("recent_chats")
           .doc(otherUserId)
-          .set({
-        "name": otherUserName,
-        "email": otherUserEmail,
-        "id": otherUserId,
-        "profileUrl": otheruserProfileUrl,
-        "pendingMsg": "",
-        "pendingMsgWith": "",
-        "lastMessage": "",
-        "lastMsgTime": null,
-        "type": "single",
-        "memberList": [currentUserId, otherUserId],
-        "cardStatus": 1,
-        "typingStatus": 0,
-        "typingWith": "",
-        "isBlock": false,
-        "blockBy": "",
-        "blockList": [],
-        "status": "",
-        "count": 0,
-      });
+          .set(
+            RecentChatObj(
+                    name: otherUserName,
+                    email: otherUserEmail,
+                    id: otherUserId,
+                    profileUrl: otheruserProfileUrl,
+                    pendingMsg: "",
+                    pendingMsgWith: "",
+                    lastMessage: "",
+                    lastMsgTime: null,
+                    type: "single",
+                    memberList: [currentUserId, otherUserId],
+                    cardStatus: 1,
+                    typingStatus: 0,
+                    typingWith: "",
+                    isBlock: false,
+                    blockBy: "",
+                    blockList: [],
+                    status: "",
+                    count: 0)
+                .toJson(),
+          );
     }
   });
   await FirebaseFirestore.instance
@@ -120,26 +122,28 @@ Future<void> setRecentChatCardForBothUser(
           .doc(otherUserId)
           .collection("recent_chats")
           .doc(currentUserId)
-          .set({
-        "name": currentUserName,
-        "email": currentUserEmail,
-        "id": currentUserId,
-        "profileUrl": currentUserProfileUrl,
-        "pendingMsg": "",
-        "pendingMsgWith": "",
-        "lastMessage": "",
-        "lastMsgTime": null,
-        "type": "single",
-        "memberList": [currentUserId, otherUserId],
-        "cardStatus": 1,
-        "typingStatus": 0,
-        "typingWith": "",
-        "isBlock": false,
-        "blockBy": "",
-        "blockList": [],
-        "status": "",
-        "count": 0,
-      });
+          .set(
+            RecentChatObj(
+                    name: currentUserName,
+                    email: currentUserEmail,
+                    id: currentUserId,
+                    profileUrl: currentUserProfileUrl,
+                    pendingMsg: "",
+                    pendingMsgWith: "",
+                    lastMessage: "",
+                    lastMsgTime: null,
+                    type: "single",
+                    memberList: [currentUserId, otherUserId],
+                    cardStatus: 1,
+                    typingStatus: 0,
+                    typingWith: "",
+                    isBlock: false,
+                    blockBy: "",
+                    blockList: [],
+                    status: "",
+                    count: 0)
+                .toJson(),
+          );
     }
   });
 }
@@ -163,9 +167,14 @@ Future<void> setChattingWith({String currentUserId, String otherUserId}) async {
 
 //Send message as Text...
 Future<void> sendMessageAsText(
-    {String message, String currentUserId, String otherUserId}) async {
-  String chatId =
-      getChatId(currentUserId: currentUserId, otherUserId: otherUserId);
+    {String message,
+    String currentUserId,
+    String otherUserId,
+    bool isForGroup = false,
+    List<String> groupMemberIdLst}) async {
+  String chatId = isForGroup
+      ? getGroupChatId(groupMemberIdLst)
+      : getChatId(currentUserId: currentUserId, otherUserId: otherUserId);
 
   //String chatId = getChatId(userInfoObj.id, recentChatObj.id);
 
@@ -239,6 +248,17 @@ Future<void> sendMessageAsText(
       type: 0,
       message: message,
       toSend: otherUserId);
+  if (isForGroup) {
+    afterMessageSendActionsForGroup(
+      currentUserId: currentUserId,
+      groupChatId: otherUserId,
+      groupMemberIdList: groupMemberIdLst,
+      type: 0,
+      message: message,
+    );
+    pendingMessageCountForGroup(
+        groupChatId: otherUserId, groupMemberIdList: groupMemberIdLst);
+  }
 }
 
 //transaction demo method...
@@ -295,8 +315,34 @@ Future<void> afterMessageSendActionsForSingleChat(
           "lastMessage": type == 0 ? message : "You sent a photo",
           "lastMsgTime": DateTime.now().toUtc().millisecondsSinceEpoch,
         });
+    //Send notifications...
+    if (toSend == otherUserId) {
+      transaction.set(
+          FirebaseFirestore.instance
+              .collection("users")
+              .doc(otherUserId)
+              .collection("notifications")
+              .doc(),
+          {
+            "content": message,
+            "idTo": otherUserId,
+            "idFrom": currentUserId,
+          });
+    } else {
+      transaction.set(
+          FirebaseFirestore.instance
+              .collection("users")
+              .doc(currentUserId)
+              .collection("notifications")
+              .doc(),
+          {
+            "content": message,
+            "idTo": currentUserId,
+            "idFrom": otherUserId,
+          });
+    }
     //Set pending message for other user...
-    if (documentSnapshot.data()["chattingWith"] != otherUserId) {
+    if (documentSnapshot.data()["chattingWith"] != currentUserId) {
       transaction.update(
           FirebaseFirestore.instance
               .collection("users")
@@ -310,7 +356,7 @@ Future<void> afterMessageSendActionsForSingleChat(
     }
 
     //Set pending msg count for other user...
-    if (documentSnapshot.data()["chattingWith"] != otherUserId) {
+    if (documentSnapshot.data()["chattingWith"] != currentUserId) {
       int count = documentForGetCount.data()["count"];
       count++;
       transaction.update(
@@ -328,9 +374,14 @@ Future<void> afterMessageSendActionsForSingleChat(
 
 //Send message as image...
 Future<void> sendImageAsMessage(
-    {String currentUserId, String otherUserId, List<File> resultList}) async {
-  String chatId =
-      getChatId(currentUserId: currentUserId, otherUserId: otherUserId);
+    {String currentUserId,
+    String otherUserId,
+    List<File> resultList,
+    bool isForGroup = false,
+    List<String> groupMemberIdLst}) async {
+  String chatId = isForGroup
+      ? getGroupChatId(groupMemberIdLst)
+      : getChatId(currentUserId: currentUserId, otherUserId: otherUserId);
 
   List<String> fileList = [];
   for (var imageFile in resultList) {
@@ -419,6 +470,17 @@ Future<void> sendImageAsMessage(
       type: 1,
       message: "",
       toSend: otherUserId);
+  if (isForGroup) {
+    afterMessageSendActionsForGroup(
+      currentUserId: currentUserId,
+      groupChatId: otherUserId,
+      groupMemberIdList: groupMemberIdLst,
+      type: 1,
+      message: "",
+    );
+    pendingMessageCountForGroup(
+        groupChatId: otherUserId, groupMemberIdList: groupMemberIdLst);
+  }
 }
 
 //Post image to firebase storage for send image...
@@ -545,9 +607,13 @@ Future<Stream<QuerySnapshot>> getChats(
 
 //Clear messages for me...
 Future<void> clearMessagesForOnlyOneUser(
-    {String currentUserId, String otherUserId}) async {
-  String chatId =
-      getChatId(currentUserId: currentUserId, otherUserId: otherUserId);
+    {String currentUserId,
+    String otherUserId,
+    String groupChatId,
+    bool isForGroup = false}) async {
+  String chatId = isForGroup
+      ? groupChatId
+      : getChatId(currentUserId: currentUserId, otherUserId: otherUserId);
   List<dynamic> updatedList = [];
   await FirebaseFirestore.instance
       .collection("messages")
@@ -690,6 +756,401 @@ Future<void> blockUnblockUser(
   });
 }
 
+//Create chat Id for group...
+getGroupChatId(List<String> groupmemberIdList) {
+  //if (currentUser.isNotEmpty) userList.add(currentUser);
+  groupmemberIdList.sort((a, b) => a.compareTo(b));
+  return groupmemberIdList.reduce((value, element) => value + element) + "G";
+}
+
+//add group in firestore with members...
+Future<void> createGroup(
+    {UserInfoObj userInfoObj,
+    List<String> userList,
+    String groupName,
+    String groupProfileUrl}) async {
+  //Create group chat id...
+  String groupChatId = getGroupChatId(userList);
+  //Add group...
+  await FirebaseFirestore.instance
+      .collection("groups")
+      .doc(groupChatId)
+      .set(UserInfoObj(
+        id: groupChatId,
+        email: "",
+        name: groupName,
+        profileUrl: groupProfileUrl,
+        chattingWith: "",
+        blockList: [],
+        type: "group",
+        status: "",
+      ).toJson());
+  userList.forEach((element) async {
+    //Add group card in all members of group...
+    await FirebaseFirestore.instance
+        .collection("users")
+        .doc(element)
+        .collection("recent_chats")
+        .doc(groupChatId)
+        .set(RecentChatObj(
+                name: groupName,
+                email: "",
+                id: groupChatId,
+                profileUrl: groupProfileUrl,
+                pendingMsg: "",
+                pendingMsgWith: "",
+                lastMessage: "",
+                lastMsgTime: null,
+                type: "group",
+                memberList: userList,
+                cardStatus: 1,
+                typingStatus: 0,
+                isBlock: false,
+                blockBy: "",
+                blockList: [],
+                adminList: [userInfoObj.id],
+                count: 0)
+            .toJson());
+  });
+}
+
+Future<void> afterMessageSendActionsForGroup(
+    {String currentUserId,
+    String groupChatId,
+    List<String> groupMemberIdList,
+    int type,
+    String message}) async {
+  await FirebaseFirestore.instance.runTransaction((transaction) async {
+    List<DocumentSnapshot> documentSnapshotList = [];
+    for (int i = 0; i < groupMemberIdList.length; i++) {
+      DocumentSnapshot documentSnapshot = await transaction.get(
+          FirebaseFirestore.instance
+              .collection("users")
+              .doc(groupMemberIdList[i]));
+      documentSnapshotList.add(documentSnapshot);
+    }
+
+    List<String> userList = [];
+    groupMemberIdList.forEach((element) {
+      userList.add(element);
+    });
+    String groupChatId = getGroupChatId(userList);
+
+    List<dynamic> fcmIdList = [];
+    for (int i = 0; i < documentSnapshotList.length; i++) {
+      //String memberUserId = recentChatObj.memberList[i];
+      if (documentSnapshotList[i].data()["id"] != currentUserId) {
+        fcmIdList.addAll(documentSnapshotList[i].data()["fcm_id"]);
+      }
+    }
+    print(fcmIdList);
+    if (fcmIdList.isNotEmpty) {
+      transaction.set(
+          FirebaseFirestore.instance
+              .collection("groups")
+              .doc(groupChatId)
+              .collection("notifications")
+              .doc(),
+          {
+            "content": message,
+            "idTo": "",
+            "idFrom": groupChatId,
+            "fcmIdList": fcmIdList,
+          });
+    }
+    for (int i = 0; i < documentSnapshotList.length; i++) {
+      if (documentSnapshotList[i].data()["chattingWith"] != groupChatId) {
+        if (documentSnapshotList[i].data()["id"] != currentUserId) {
+          transaction.update(
+              FirebaseFirestore.instance
+                  .collection("users")
+                  .doc(documentSnapshotList[i].data()["id"])
+                  .collection("recent_chats")
+                  .doc(groupChatId),
+              {
+                "pendingMsg": "true",
+                "pendingMsgWith": groupChatId,
+              });
+        }
+      }
+    }
+
+    //Last message set for current user and set in other group member...
+
+    groupMemberIdList.forEach((element) async {
+      if (element != currentUserId) {
+        transaction.update(
+            FirebaseFirestore.instance
+                .collection("users")
+                .doc(element)
+                .collection("recent_chats")
+                .doc(groupChatId),
+            {
+              "lastMessage": type == 0 ? message : "you recieved photo",
+              "lastMsgTime": DateTime.now().toUtc().millisecondsSinceEpoch,
+            });
+      } else {
+        transaction.update(
+            FirebaseFirestore.instance
+                .collection("users")
+                .doc(element)
+                .collection("recent_chats")
+                .doc(groupChatId),
+            {
+              "lastMessage": type == 0 ? message : "you sent a photo",
+              "lastMsgTime": DateTime.now().toUtc().millisecondsSinceEpoch,
+            });
+      }
+    });
+    transaction.update(
+        FirebaseFirestore.instance
+            .collection("users")
+            .doc(currentUserId)
+            .collection("recent_chats")
+            .doc(groupChatId),
+        {"cardStatus": 1});
+    transaction.update(
+        FirebaseFirestore.instance
+            .collection("users")
+            .doc(groupChatId)
+            .collection("recent_chats")
+            .doc(currentUserId),
+        {"cardStatus": 1});
+  });
+}
+
+//Pending message Count For group...
+pendingMessageCountForGroup(
+    {String groupChatId, List<String> groupMemberIdList}) async {
+  await FirebaseFirestore.instance.runTransaction((transaction) async {
+    List<DocumentSnapshot> documentSnapshotList = [];
+    for (int i = 0; i < groupMemberIdList.length; i++) {
+      DocumentSnapshot documentSnapshot = await transaction.get(
+          FirebaseFirestore.instance
+              .collection("users")
+              .doc(groupMemberIdList[i]));
+      documentSnapshotList.add(documentSnapshot);
+    }
+    List<DocumentSnapshot> documentSnapshotList2 = [];
+    for (int i = 0; i < groupMemberIdList.length; i++) {
+      DocumentSnapshot documentSnapshot2 = await transaction.get(
+          FirebaseFirestore.instance
+              .collection("users")
+              .doc(groupMemberIdList[i])
+              .collection("recent_chats")
+              .doc(groupChatId));
+      documentSnapshotList2.add(documentSnapshot2);
+    }
+    for (int i = 0; i < documentSnapshotList.length; i++) {
+      if (documentSnapshotList[i].data()["chattingWith"] != groupChatId) {
+        int count = documentSnapshotList2[i].data()["count"];
+        count++;
+        transaction.update(
+            FirebaseFirestore.instance
+                .collection("users")
+                .doc(groupMemberIdList[i])
+                .collection("recent_chats")
+                .doc(groupChatId),
+            {
+              "count": count,
+            });
+      }
+    }
+  });
+}
+
+//exit group...
+Future<void> exitGroup(
+    {String currentUserId,
+    String currentGroupChatId,
+    String groupName,
+    String groupProfileUrl,
+    List<String> groupMemberIdList}) async {
+  //create new member list without current user who wants to exit group...
+  List<String> newuserList = [];
+  groupMemberIdList.forEach((element) {
+    if (element != currentUserId) {
+      newuserList.add(element);
+    }
+  });
+  //create mew group chat id...
+  String newGroupChatId = getGroupChatId(newuserList);
+  //delete group obj in all members reent chat and change new group obj in all members recent chats without current user...
+  groupMemberIdList.forEach((element) async {
+    await FirebaseFirestore.instance
+        .collection("users")
+        .doc(element)
+        .collection("recent_chats")
+        .doc(currentGroupChatId)
+        .delete();
+    if (element != currentUserId) {
+      await FirebaseFirestore.instance
+          .collection("users")
+          .doc(element)
+          .collection("recent_chats")
+          .doc(newGroupChatId)
+          .set(RecentChatObj(
+                  name: groupName,
+                  email: "",
+                  id: newGroupChatId,
+                  profileUrl: groupProfileUrl,
+                  pendingMsg: "",
+                  pendingMsgWith: "",
+                  lastMessage: "",
+                  lastMsgTime: null,
+                  type: "group",
+                  memberList: newuserList,
+                  cardStatus: 1,
+                  typingStatus: 0,
+                  isBlock: false,
+                  blockList: [],
+                  adminList: [currentUserId],
+                  count: 0)
+              .toJson());
+    }
+  });
+  //Get group messages and create new group chatroom,delete old chatroom...
+  await FirebaseFirestore.instance
+      .collection("messages")
+      .doc(currentGroupChatId)
+      .collection("chats")
+      .orderBy("time", descending: true)
+      .get()
+      .then((value) async {
+    value.docs.forEach((element) async {
+      await FirebaseFirestore.instance
+          .collection("messages")
+          .doc(newGroupChatId)
+          .collection("chats")
+          .add(element.data());
+    });
+  });
+  await FirebaseFirestore.instance
+      .collection("messages")
+      .doc(currentGroupChatId)
+      .collection("chats")
+      .get()
+      .then((value) {
+    value.docs.forEach((element) async {
+      await FirebaseFirestore.instance
+          .collection("messages")
+          .doc(currentGroupChatId)
+          .collection("chats")
+          .doc(element.id)
+          .delete();
+    });
+  });
+}
+
+//add member in group...
+Future<void> addMemberInGroup(
+    {String currentUserId,
+    String groupChatId,
+    String groupName,
+    String groupProfileUrl,
+    List<String> groupMemberIdList,
+    List<String> newMemberIdList}) async {
+  List<String> userList = [];
+  groupMemberIdList.forEach((element) {
+    userList.add(element);
+  });
+  newMemberIdList.forEach((element) {
+    userList.add(element);
+  });
+
+  String newGroupChatId = getGroupChatId(userList);
+
+  //delete group obj in all members reent chat and change new group obj in all members recent chats without current user...
+  groupMemberIdList.forEach((element) async {
+    await FirebaseFirestore.instance
+        .collection("users")
+        .doc(element)
+        .collection("recent_chats")
+        .doc(groupChatId)
+        .delete();
+
+    await FirebaseFirestore.instance
+        .collection("users")
+        .doc(element)
+        .collection("recent_chats")
+        .doc(newGroupChatId)
+        .set(RecentChatObj(
+                name: groupName,
+                email: "",
+                id: newGroupChatId,
+                profileUrl: groupProfileUrl,
+                pendingMsg: "",
+                pendingMsgWith: "",
+                lastMessage: "",
+                lastMsgTime: null,
+                type: "group",
+                memberList: userList,
+                cardStatus: 1,
+                typingStatus: 0,
+                isBlock: false,
+                blockList: [],
+                adminList: [currentUserId],
+                count: 0)
+            .toJson());
+  });
+  newMemberIdList.forEach((element) async {
+    await FirebaseFirestore.instance
+        .collection("users")
+        .doc(element)
+        .collection("recent_chats")
+        .doc(newGroupChatId)
+        .set(RecentChatObj(
+                name: groupName,
+                email: "",
+                id: newGroupChatId,
+                profileUrl: groupProfileUrl,
+                pendingMsg: "",
+                pendingMsgWith: "",
+                lastMessage: "",
+                lastMsgTime: null,
+                type: "group",
+                memberList: userList,
+                cardStatus: 1,
+                typingStatus: 0,
+                isBlock: false,
+                blockList: [],
+                adminList: [currentUserId],
+                count: 0)
+            .toJson());
+  });
+  //Get group messages and create new group chatroom,delete old chatroom...
+  await FirebaseFirestore.instance
+      .collection("messages")
+      .doc(groupChatId)
+      .collection("chats")
+      .orderBy("time", descending: true)
+      .get()
+      .then((value) async {
+    value.docs.forEach((element) async {
+      await FirebaseFirestore.instance
+          .collection("messages")
+          .doc(newGroupChatId)
+          .collection("chats")
+          .add(element.data());
+    });
+  });
+  await FirebaseFirestore.instance
+      .collection("messages")
+      .doc(groupChatId)
+      .collection("chats")
+      .get()
+      .then((value) {
+    value.docs.forEach((element) async {
+      await FirebaseFirestore.instance
+          .collection("messages")
+          .doc(groupChatId)
+          .collection("chats")
+          .doc(element.id)
+          .delete();
+    });
+  });
+}
+
 MessageListObj messageListObjFromJson(String str) =>
     MessageListObj.fromJson(json.decode(str));
 
@@ -813,5 +1274,98 @@ class UserInfoObj {
         "device_id": deviceId ?? "",
         "profileUrl": profileUrl ?? "",
         "blockList": blockList,
+      };
+}
+
+//RecentChatObj Object...
+RecentChatObj recentChatObjFromJson(String str) =>
+    RecentChatObj.fromJson(json.decode(str));
+
+String recentChatObjToJson(RecentChatObj data) => json.encode(data.toJson());
+
+class RecentChatObj {
+  RecentChatObj({
+    this.name,
+    this.email,
+    this.id,
+    this.profileUrl,
+    this.pendingMsg,
+    this.pendingMsgWith,
+    this.lastMessage,
+    this.lastMsgTime,
+    this.type,
+    this.memberList,
+    this.cardStatus,
+    this.typingStatus,
+    this.typingWith,
+    this.isBlock,
+    this.blockBy,
+    this.blockList,
+    this.status,
+    this.count,
+    this.adminList,
+  });
+  String name;
+  String email;
+  String id;
+  String profileUrl;
+  String pendingMsg;
+  String pendingMsgWith;
+  String lastMessage;
+  int lastMsgTime;
+  String type;
+  List<dynamic> memberList = [];
+  int cardStatus;
+  int typingStatus;
+  String typingWith;
+  bool isBlock;
+  String blockBy;
+  List<dynamic> blockList = [];
+  String status;
+  int count;
+  List<dynamic> adminList;
+
+  factory RecentChatObj.fromJson(Map<String, dynamic> json) => RecentChatObj(
+        name: json["name"] ?? "",
+        email: json["email"] ?? "",
+        id: json["id"] ?? "",
+        profileUrl: json["profileUrl"] ?? "",
+        pendingMsg: json["pendingMsg"],
+        pendingMsgWith: json["pendingMsgWith"] ?? "",
+        lastMessage: json["lastMessage"] ?? "",
+        lastMsgTime: json["lastMsgTime"],
+        type: json["type"] ?? "",
+        memberList: json["memberList"],
+        cardStatus: json["cardStatus"],
+        typingStatus: json["typingStatus"],
+        typingWith: json["typingWith"] ?? "",
+        isBlock: json["isBlock"],
+        blockBy: json["blockBy"] ?? "",
+        blockList: json["blockList"] == null ? [] : json["blockList"],
+        status: json["status"] ?? "",
+        count: json["count"],
+        adminList: json["adminList"] == null ? [] : json["adminList"],
+      );
+
+  Map<String, dynamic> toJson() => {
+        "name": name ?? "",
+        "email": email ?? "",
+        "id": id ?? "",
+        "profileUrl": profileUrl ?? "",
+        "pendingMsg": pendingMsg ?? "",
+        "pendingMsgWith": pendingMsgWith ?? "",
+        "lastMessage": lastMessage ?? "",
+        "lastMsgTime": lastMsgTime,
+        "type": type ?? "",
+        "memberList": memberList,
+        "cardStatus": cardStatus,
+        "typingStatus": typingStatus,
+        "typingWith": typingWith,
+        "isBlock": isBlock,
+        "blockBy": blockBy,
+        "blockList": blockList,
+        "status": status,
+        "count": count,
+        "adminList": adminList,
       };
 }
