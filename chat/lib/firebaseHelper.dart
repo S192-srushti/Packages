@@ -1,4 +1,5 @@
 part of chat;
+
 //Add user to cloud firestore...
 Future<void> addUserToCloudFireStore(
     {String userId,
@@ -20,7 +21,7 @@ Future<void> addUserToCloudFireStore(
         "chattingWith": "",
         "blockList": [],
         "type": "single",
-        "status": "",
+        "status": "online",
         "fcm_id": fcmId,
       });
     }
@@ -235,27 +236,27 @@ Future<void> sendMessageAsText(
     }
   });
 
-  afterMessageSendActionsForSingleChat(
+  _afterMessageSendActionsForSingleChat(
       currentUserId: currentUserId,
       otherUserId: otherUserId,
       type: 0,
       message: message,
       toSend: otherUserId);
   if (isForGroup) {
-    afterMessageSendActionsForGroup(
+    _afterMessageSendActionsForGroup(
       currentUserId: currentUserId,
       groupChatId: otherUserId,
       groupMemberIdList: groupMemberIdLst,
       type: 0,
       message: message,
     );
-    pendingMessageCountForGroup(
+    _pendingMessageCountForGroup(
         groupChatId: otherUserId, groupMemberIdList: groupMemberIdLst);
   }
 }
 
 //transaction demo method...
-Future<void> afterMessageSendActionsForSingleChat(
+Future<void> _afterMessageSendActionsForSingleChat(
     {String currentUserId,
     String otherUserId,
     int type,
@@ -457,21 +458,21 @@ Future<void> sendImageAsMessage(
     }
   });
 
-  afterMessageSendActionsForSingleChat(
+  _afterMessageSendActionsForSingleChat(
       currentUserId: currentUserId,
       otherUserId: otherUserId,
       type: 1,
       message: "",
       toSend: otherUserId);
   if (isForGroup) {
-    afterMessageSendActionsForGroup(
+    _afterMessageSendActionsForGroup(
       currentUserId: currentUserId,
       groupChatId: otherUserId,
       groupMemberIdList: groupMemberIdLst,
       type: 1,
       message: "",
     );
-    pendingMessageCountForGroup(
+    _pendingMessageCountForGroup(
         groupChatId: otherUserId, groupMemberIdList: groupMemberIdLst);
   }
 }
@@ -807,7 +808,7 @@ Future<void> createGroup(
   });
 }
 
-Future<void> afterMessageSendActionsForGroup(
+Future<void> _afterMessageSendActionsForGroup(
     {String currentUserId,
     String groupChatId,
     List<String> groupMemberIdList,
@@ -831,7 +832,6 @@ Future<void> afterMessageSendActionsForGroup(
 
     List<dynamic> fcmIdList = [];
     for (int i = 0; i < documentSnapshotList.length; i++) {
-      //String memberUserId = recentChatObj.memberList[i];
       if (documentSnapshotList[i].data()["id"] != currentUserId) {
         fcmIdList.addAll(documentSnapshotList[i].data()["fcm_id"]);
       }
@@ -913,7 +913,7 @@ Future<void> afterMessageSendActionsForGroup(
 }
 
 //Pending message Count For group...
-pendingMessageCountForGroup(
+_pendingMessageCountForGroup(
     {String groupChatId, List<String> groupMemberIdList}) async {
   await FirebaseFirestore.instance.runTransaction((transaction) async {
     List<DocumentSnapshot> documentSnapshotList = [];
@@ -1142,4 +1142,15 @@ Future<void> addMemberInGroup(
           .delete();
     });
   });
+}
+
+Future<void> deleteConversationCard(
+    {String currentUserId, String otherUserId}) async {
+  clearMessagesForOnlyOneUser();
+  await FirebaseFirestore.instance
+      .collection("users")
+      .doc(currentUserId)
+      .collection("recent_chats")
+      .doc(otherUserId)
+      .update({"cardStatus": 0});
 }
