@@ -1,4 +1,3 @@
-_
 part of chat;
 MessageListObj messageListObjFromJson(String str) =>
     MessageListObj.fromJson(json.decode(str));
