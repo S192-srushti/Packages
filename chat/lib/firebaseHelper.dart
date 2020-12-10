@@ -1203,3 +1203,14 @@ Future<void> isDownloaded(
                 .update({"messageObjList": updatedList});
           }));
 }
+
+//Get recentChat...
+Stream<QuerySnapshot> getRecentChat({String currentUserId}) {
+  return FirebaseFirestore.instance
+      .collection("users")
+      .doc(currentUserId)
+      .collection("recent_chats")
+      .orderBy("lastMsgTime", descending: true)
+      .where("cardStatus", isEqualTo: 1)
+      .snapshots();
+}
