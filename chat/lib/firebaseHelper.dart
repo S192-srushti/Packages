@@ -33,11 +33,13 @@ Future<dynamic> setProfilePictureToFirebaseStorage({
   String userId,
   File imageFile,
 }) async {
-  StorageReference reference =
-      FirebaseStorage.instance.ref().child("$userId/profilePhoto");
-  StorageUploadTask uploadTask = reference.putData(imageFile.readAsBytesSync());
-  StorageTaskSnapshot storageTaskSnapshot = await uploadTask.onComplete;
-  return await storageTaskSnapshot.ref.getDownloadURL();
+  firebase_storage.Reference reference = firebase_storage
+      .FirebaseStorage.instance
+      .ref()
+      .child("$userId/profilePhoto");
+  await reference.putData((imageFile.readAsBytesSync()));
+  // firebase_storage.TaskSnapshot taskSnapshot = uploadTask.snapshot;
+  return await reference.getDownloadURL();
 }
 
 //Update profile picture...
@@ -205,6 +207,9 @@ Future<void> sendMessageAsText({
                   "type": 0,
                   "image_url": "",
                   "deleteBy": [],
+                  "recieverPath": "",
+                  "senderPath": "",
+                  "isDownloaded": false,
                 });
                 await FirebaseFirestore.instance
                     .collection("messages")
@@ -232,6 +237,9 @@ Future<void> sendMessageAsText({
             "type": 0,
             "image_url": "",
             "deleteBy": [],
+            "recieverPath": "",
+            "senderPath": "",
+            "isDownloaded": false,
           }
         ]
       });
@@ -370,28 +378,13 @@ Future<void> sendImageAsMessage({
       : getChatId(
           currentUserId: currentUserId, conversationUserId: conversationUserId);
 
-  List<String> fileList = [];
+  //List<String> fileList = [];
   for (var imageFile in resultList) {
     await postImageForSend(
       imageFile: imageFile,
-    ).then((downloadUrl) {
-      // Get the download URL...
-      fileList.add(downloadUrl.toString());
-    }).catchError((err) {
-      print(err);
-    });
-  }
-  //Send Message as a image...
-  await FirebaseFirestore.instance
-      .collection("messages")
-      .doc(chatId)
-      .collection("chats")
-      .where("chatDate",
-          isEqualTo: DateFormat('dd MMMM yyyy').format(DateTime.now().toUtc()))
-      .get()
-      .then((value) async {
-    if (value.docs.isNotEmpty) {
-      List<dynamic> messageList = [];
+    ).then((downloadUrl) async {
+      String senderPath = imageFile.path;
+      //Send Message as a image...
       await FirebaseFirestore.instance
           .collection("messages")
           .doc(chatId)
@@ -400,56 +393,80 @@ Future<void> sendImageAsMessage({
               isEqualTo:
                   DateFormat('dd MMMM yyyy').format(DateTime.now().toUtc()))
           .get()
-          .then((querySnapshot) => querySnapshot.docs.forEach((element) async {
-                List<dynamic> oldMsgList = element.data()["messageObj"];
-                oldMsgList.forEach((element) {
-                  messageList.add(element);
-                });
-                fileList.forEach((url) async {
-                  messageList.add({
-                    "toSend": conversationUserId,
-                    "sendBy": currentUserId,
-                    "message": "",
-                    "time": DateTime.now().toUtc().millisecondsSinceEpoch,
-                    "type": 1,
-                    "image_url": url,
-                    "deleteBy": [],
-                  });
-                });
+          .then((value) async {
+        if (value.docs.isNotEmpty) {
+          List<dynamic> messageList = [];
+          await FirebaseFirestore.instance
+              .collection("messages")
+              .doc(chatId)
+              .collection("chats")
+              .where("chatDate",
+                  isEqualTo:
+                      DateFormat('dd MMMM yyyy').format(DateTime.now().toUtc()))
+              .get()
+              .then((querySnapshot) =>
+                  querySnapshot.docs.forEach((element) async {
+                    List<dynamic> oldMsgList = element.data()["messageObj"];
+                    oldMsgList.forEach((element) {
+                      messageList.add(element);
+                    });
 
-                await FirebaseFirestore.instance
-                    .collection("messages")
-                    .doc(chatId)
-                    .collection("chats")
-                    .doc(element.id)
-                    .update({
-                  "messageObj": messageList,
-                });
-              }));
-    } else {
-      List<Map<String, dynamic>> messageObjList = [];
-      fileList.forEach((url) async {
-        messageObjList.add({
-          "toSend": conversationUserId,
-          "sendBy": currentUserId,
-          "message": "",
-          "time": DateTime.now().toUtc().millisecondsSinceEpoch,
-          "type": 1,
-          "image_url": url,
-          "deleteBy": [],
-        });
+                    messageList.add({
+                      "toSend": conversationUserId,
+                      "sendBy": currentUserId,
+                      "message": "",
+                      "time": DateTime.now().toUtc().millisecondsSinceEpoch,
+                      "type": 1,
+                      "image_url": downloadUrl,
+                      "deleteBy": [],
+                      "recieverPath": "",
+                      "senderPath": senderPath,
+                      "isDownloaded": false,
+                    });
+
+                    await FirebaseFirestore.instance
+                        .collection("messages")
+                        .doc(chatId)
+                        .collection("chats")
+                        .doc(element.id)
+                        .update({
+                      "messageObj": messageList,
+                    });
+                  }));
+        } else {
+          List<Map<String, dynamic>> messageObjList = [];
+
+          messageObjList.add({
+            "toSend": conversationUserId,
+            "sendBy": currentUserId,
+            "message": "",
+            "time": DateTime.now().toUtc().millisecondsSinceEpoch,
+            "type": 1,
+            "image_url": downloadUrl,
+            "deleteBy": [],
+            "recieverPath": "",
+            "senderPath": senderPath,
+            "isDownloaded": false,
+          });
+
+          await FirebaseFirestore.instance
+              .collection("messages")
+              .doc(chatId)
+              .collection("chats")
+              .add({
+            "time": DateTime.now().toUtc().millisecondsSinceEpoch,
+            "chatDate":
+                DateFormat('dd MMMM yyyy').format(DateTime.now().toUtc()),
+            "messageObj": messageObjList,
+          });
+        }
       });
-      await FirebaseFirestore.instance
-          .collection("messages")
-          .doc(chatId)
-          .collection("chats")
-          .add({
-        "time": DateTime.now().toUtc().millisecondsSinceEpoch,
-        "chatDate": DateFormat('dd MMMM yyyy').format(DateTime.now().toUtc()),
-        "messageObj": messageObjList,
-      });
-    }
-  });
+      // Get the download URL...
+      //fileList.add(downloadUrl.toString());
+    }).catchError((err) {
+      print(err);
+    });
+  }
 
   _afterMessageSendActionsForSingleChat(
       currentUserId: currentUserId,
@@ -471,12 +488,16 @@ Future<dynamic> postImageForSend(
       : getChatId(
           currentUserId: currentUserId, conversationUserId: conversationUserId);
   String fileName = DateTime.now().millisecondsSinceEpoch.toString();
-  StorageReference reference =
-      FirebaseStorage.instance.ref().child("$chatId/$fileName");
-  StorageUploadTask uploadTask =
-      reference.putData((imageFile.readAsBytesSync()));
-  StorageTaskSnapshot storageTaskSnapshot = await uploadTask.onComplete;
-  return await storageTaskSnapshot.ref.getDownloadURL();
+  //String fileName = DateTime.now().millisecondsSinceEpoch.toString();
+  // Provider.of<ChatProvider>(context, listen: false).setTime =
+  //     int.parse(fileName);
+  //................set time here and get time when image send..........................
+  firebase_storage.Reference reference =
+      firebase_storage.FirebaseStorage.instance.ref().child(
+          isFroGroup ? "$conversationUserId/$fileName" : "$chatId/$fileName");
+  await reference.putData((imageFile.readAsBytesSync()));
+  // firebase_storage.TaskSnapshot taskSnapshot = uploadTask.snapshot;
+  return await reference.getDownloadURL();
 }
 
 //Chatting with empty...
@@ -684,14 +705,17 @@ Future<void> clearMessagesForOnlyOneUser(
               }
               olderDeletedBy.add(currentUserId);
               updatedList.add(MessageObj(
-                toSend: element.toSend,
-                sendBy: element.sendBy,
-                message: element.message,
-                time: element.time,
-                type: element.type,
-                imageUrl: element.imageUrl,
-                deleteBy: olderDeletedBy,
-              ).toJson());
+                      toSend: element.toSend,
+                      sendBy: element.sendBy,
+                      message: element.message,
+                      time: element.time,
+                      type: element.type,
+                      imageUrl: element.imageUrl,
+                      deleteBy: olderDeletedBy,
+                      recieverPath: element.recieverPath,
+                      senderPath: element.senderPath,
+                      isDownloaded: element.isDownloaded)
+                  .toJson());
             });
             print(updatedList);
             await FirebaseFirestore.instance
@@ -1101,4 +1125,81 @@ Future<void> sendNotificationForGroup(
       }
     });
   }
+}
+
+Future<String> downloadFile({String sendBy, String toSend, int time}) async {
+  String chatId = getChatId(currentUserId: sendBy, conversationUserId: toSend);
+  print(chatId);
+  print(time);
+  firebase_storage.Reference reference =
+      firebase_storage.FirebaseStorage.instance.ref().child("$chatId/$time");
+  Directory documentDirectory = await getApplicationDocumentsDirectory();
+  String filePathAndName =
+      documentDirectory.path + '/images/${reference.name}.jpg';
+  print(filePathAndName);
+  await reference.writeToFile(File(filePathAndName));
+  print("------------downloaded--------------");
+  return filePathAndName;
+}
+
+Future<void> isDownloaded(
+    {int time,
+    String toSend,
+    String sendBy,
+    String type,
+    String path,
+    bool isForGroup}) async {
+  String chatId = isForGroup
+      ? toSend
+      : getChatId(currentUserId: sendBy, conversationUserId: toSend);
+  List<dynamic> updatedList = [];
+  await FirebaseFirestore.instance
+      .collection("messages")
+      .doc(chatId)
+      .collection("chats")
+      .orderBy("time", descending: true)
+      .get()
+      .then((doclist) => doclist.docs.forEach((element1) async {
+            List<MessageObj> msgObjList = [];
+            element1.data()["messageObjList"].forEach((msgObj) {
+              msgObjList.add(messageObjFromJson(json.encode(msgObj)));
+            });
+            print(msgObjList);
+            msgObjList.forEach((element) {
+              if (element.time == time) {
+                updatedList.add(MessageObj(
+                        toSend: element.toSend,
+                        sendBy: element.sendBy,
+                        message: element.message,
+                        time: element.time,
+                        type: element.type,
+                        imageUrl: element.imageUrl,
+                        deleteBy: element.deleteBy,
+                        isDownloaded: true,
+                        recieverPath: path,
+                        senderPath: element.senderPath)
+                    .toJson());
+              } else {
+                updatedList.add(MessageObj(
+                        toSend: element.toSend,
+                        sendBy: element.sendBy,
+                        message: element.message,
+                        time: element.time,
+                        type: element.type,
+                        imageUrl: element.imageUrl,
+                        deleteBy: element.deleteBy,
+                        isDownloaded: element.isDownloaded,
+                        recieverPath: "",
+                        senderPath: element.senderPath)
+                    .toJson());
+              }
+            });
+            print(updatedList);
+            await FirebaseFirestore.instance
+                .collection("messages")
+                .doc(chatId)
+                .collection("chats")
+                .doc(element1.id)
+                .update({"messageObjList": updatedList});
+          }));
 }

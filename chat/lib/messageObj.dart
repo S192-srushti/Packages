@@ -1,4 +1,5 @@
 part of chat;
+
 MessageListObj messageListObjFromJson(String str) =>
     MessageListObj.fromJson(json.decode(str));
 
@@ -39,6 +40,9 @@ class MessageObj {
     this.type,
     this.imageUrl,
     this.deleteBy,
+    this.recieverPath,
+    this.senderPath,
+    this.isDownloaded,
   });
 
   String toSend;
@@ -48,6 +52,9 @@ class MessageObj {
   int type;
   String imageUrl;
   List<dynamic> deleteBy = [];
+  String recieverPath;
+  String senderPath;
+  bool isDownloaded;
 
   factory MessageObj.fromJson(Map<String, dynamic> json) => MessageObj(
         toSend: json["toSend"] ?? "",
@@ -57,6 +64,9 @@ class MessageObj {
         type: json["type"],
         imageUrl: json["image_url"],
         deleteBy: json["deleteBy"],
+        recieverPath: json["recieverPath"],
+        senderPath: json["senderPath"],
+        isDownloaded: json["isDownloaded"],
       );
   Map<String, dynamic> toJson() => {
         "toSend": toSend ?? "",
@@ -66,5 +76,8 @@ class MessageObj {
         "type": type,
         "image_url": imageUrl ?? "",
         "deleteBy": deleteBy,
+        "recieverPath": recieverPath,
+        "senderPath": senderPath,
+        "isDownloaded": isDownloaded,
       };
 }

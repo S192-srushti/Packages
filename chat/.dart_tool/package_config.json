@@ -33,19 +33,19 @@
     },
     {
       "name": "cloud_firestore",
-      "rootUri": "file:///Users/appstonelabhachintosh3/flutter/.pub-cache/hosted/pub.dartlang.org/cloud_firestore-0.14.2",
+      "rootUri": "file:///Users/appstonelabhachintosh3/flutter/.pub-cache/hosted/pub.dartlang.org/cloud_firestore-0.14.4",
       "packageUri": "lib/",
       "languageVersion": "2.1"
     },
     {
       "name": "cloud_firestore_platform_interface",
-      "rootUri": "file:///Users/appstonelabhachintosh3/flutter/.pub-cache/hosted/pub.dartlang.org/cloud_firestore_platform_interface-2.1.3",
+      "rootUri": "file:///Users/appstonelabhachintosh3/flutter/.pub-cache/hosted/pub.dartlang.org/cloud_firestore_platform_interface-2.2.1",
       "packageUri": "lib/",
       "languageVersion": "2.0"
     },
     {
       "name": "cloud_firestore_web",
-      "rootUri": "file:///Users/appstonelabhachintosh3/flutter/.pub-cache/hosted/pub.dartlang.org/cloud_firestore_web-0.2.0+5",
+      "rootUri": "file:///Users/appstonelabhachintosh3/flutter/.pub-cache/hosted/pub.dartlang.org/cloud_firestore_web-0.2.1+2",
       "packageUri": "lib/",
       "languageVersion": "2.1"
     },
@@ -56,40 +56,70 @@
       "languageVersion": "2.10"
     },
     {
+      "name": "convert",
+      "rootUri": "file:///Users/appstonelabhachintosh3/flutter/.pub-cache/hosted/pub.dartlang.org/convert-2.1.1",
+      "packageUri": "lib/",
+      "languageVersion": "1.17"
+    },
+    {
+      "name": "crypto",
+      "rootUri": "file:///Users/appstonelabhachintosh3/flutter/.pub-cache/hosted/pub.dartlang.org/crypto-2.1.5",
+      "packageUri": "lib/",
+      "languageVersion": "2.3"
+    },
+    {
       "name": "fake_async",
       "rootUri": "file:///Users/appstonelabhachintosh3/flutter/.pub-cache/hosted/pub.dartlang.org/fake_async-1.2.0-nullsafety.1",
       "packageUri": "lib/",
       "languageVersion": "2.10"
     },
     {
-      "name": "firebase",
-      "rootUri": "file:///Users/appstonelabhachintosh3/flutter/.pub-cache/hosted/pub.dartlang.org/firebase-7.3.2",
+      "name": "ffi",
+      "rootUri": "file:///Users/appstonelabhachintosh3/flutter/.pub-cache/hosted/pub.dartlang.org/ffi-0.1.3",
       "packageUri": "lib/",
-      "languageVersion": "2.7"
+      "languageVersion": "2.6"
+    },
+    {
+      "name": "file",
+      "rootUri": "file:///Users/appstonelabhachintosh3/flutter/.pub-cache/hosted/pub.dartlang.org/file-5.2.1",
+      "packageUri": "lib/",
+      "languageVersion": "2.2"
     },
     {
       "name": "firebase_core",
-      "rootUri": "file:///Users/appstonelabhachintosh3/flutter/.pub-cache/hosted/pub.dartlang.org/firebase_core-0.5.1",
+      "rootUri": "file:///Users/appstonelabhachintosh3/flutter/.pub-cache/hosted/pub.dartlang.org/firebase_core-0.5.3",
       "packageUri": "lib/",
       "languageVersion": "2.1"
     },
     {
       "name": "firebase_core_platform_interface",
-      "rootUri": "file:///Users/appstonelabhachintosh3/flutter/.pub-cache/hosted/pub.dartlang.org/firebase_core_platform_interface-2.0.0",
+      "rootUri": "file:///Users/appstonelabhachintosh3/flutter/.pub-cache/hosted/pub.dartlang.org/firebase_core_platform_interface-2.1.0",
       "packageUri": "lib/",
       "languageVersion": "2.1"
     },
     {
       "name": "firebase_core_web",
-      "rootUri": "file:///Users/appstonelabhachintosh3/flutter/.pub-cache/hosted/pub.dartlang.org/firebase_core_web-0.2.0",
+      "rootUri": "file:///Users/appstonelabhachintosh3/flutter/.pub-cache/hosted/pub.dartlang.org/firebase_core_web-0.2.1+1",
       "packageUri": "lib/",
       "languageVersion": "2.1"
     },
     {
       "name": "firebase_storage",
-      "rootUri": "file:///Users/appstonelabhachintosh3/flutter/.pub-cache/hosted/pub.dartlang.org/firebase_storage-4.0.1",
+      "rootUri": "file:///Users/appstonelabhachintosh3/flutter/.pub-cache/hosted/pub.dartlang.org/firebase_storage-5.2.0",
       "packageUri": "lib/",
       "languageVersion": "2.0"
+    },
+    {
+      "name": "firebase_storage_platform_interface",
+      "rootUri": "file:///Users/appstonelabhachintosh3/flutter/.pub-cache/hosted/pub.dartlang.org/firebase_storage_platform_interface-1.0.2",
+      "packageUri": "lib/",
+      "languageVersion": "2.0"
+    },
+    {
+      "name": "firebase_storage_web",
+      "rootUri": "file:///Users/appstonelabhachintosh3/flutter/.pub-cache/hosted/pub.dartlang.org/firebase_storage_web-0.1.1+1",
+      "packageUri": "lib/",
+      "languageVersion": "2.7"
     },
     {
       "name": "flutter",
@@ -152,16 +182,58 @@
       "languageVersion": "2.10"
     },
     {
+      "name": "path_provider",
+      "rootUri": "file:///Users/appstonelabhachintosh3/flutter/.pub-cache/hosted/pub.dartlang.org/path_provider-1.6.24",
+      "packageUri": "lib/",
+      "languageVersion": "2.1"
+    },
+    {
+      "name": "path_provider_linux",
+      "rootUri": "file:///Users/appstonelabhachintosh3/flutter/.pub-cache/hosted/pub.dartlang.org/path_provider_linux-0.0.1+2",
+      "packageUri": "lib/",
+      "languageVersion": "2.1"
+    },
+    {
+      "name": "path_provider_macos",
+      "rootUri": "file:///Users/appstonelabhachintosh3/flutter/.pub-cache/hosted/pub.dartlang.org/path_provider_macos-0.0.4+6",
+      "packageUri": "lib/",
+      "languageVersion": "2.1"
+    },
+    {
+      "name": "path_provider_platform_interface",
+      "rootUri": "file:///Users/appstonelabhachintosh3/flutter/.pub-cache/hosted/pub.dartlang.org/path_provider_platform_interface-1.0.4",
+      "packageUri": "lib/",
+      "languageVersion": "2.1"
+    },
+    {
+      "name": "path_provider_windows",
+      "rootUri": "file:///Users/appstonelabhachintosh3/flutter/.pub-cache/hosted/pub.dartlang.org/path_provider_windows-0.0.4+3",
+      "packageUri": "lib/",
+      "languageVersion": "2.1"
+    },
+    {
       "name": "pedantic",
       "rootUri": "file:///Users/appstonelabhachintosh3/flutter/.pub-cache/hosted/pub.dartlang.org/pedantic-1.9.2",
       "packageUri": "lib/",
       "languageVersion": "2.1"
     },
     {
+      "name": "platform",
+      "rootUri": "file:///Users/appstonelabhachintosh3/flutter/.pub-cache/hosted/pub.dartlang.org/platform-2.2.1",
+      "packageUri": "lib/",
+      "languageVersion": "1.24"
+    },
+    {
       "name": "plugin_platform_interface",
       "rootUri": "file:///Users/appstonelabhachintosh3/flutter/.pub-cache/hosted/pub.dartlang.org/plugin_platform_interface-1.0.3",
       "packageUri": "lib/",
       "languageVersion": "2.1"
+    },
+    {
+      "name": "process",
+      "rootUri": "file:///Users/appstonelabhachintosh3/flutter/.pub-cache/hosted/pub.dartlang.org/process-3.0.13",
+      "packageUri": "lib/",
+      "languageVersion": "2.0"
     },
     {
       "name": "quiver",
@@ -224,13 +296,25 @@
       "languageVersion": "2.10"
     },
     {
+      "name": "win32",
+      "rootUri": "file:///Users/appstonelabhachintosh3/flutter/.pub-cache/hosted/pub.dartlang.org/win32-1.7.4",
+      "packageUri": "lib/",
+      "languageVersion": "2.7"
+    },
+    {
+      "name": "xdg_directories",
+      "rootUri": "file:///Users/appstonelabhachintosh3/flutter/.pub-cache/hosted/pub.dartlang.org/xdg_directories-0.1.2",
+      "packageUri": "lib/",
+      "languageVersion": "2.3"
+    },
+    {
       "name": "chat",
       "rootUri": "../",
       "packageUri": "lib/",
       "languageVersion": "2.7"
     }
   ],
-  "generated": "2020-11-05T13:15:34.768643Z",
+  "generated": "2020-12-10T06:36:38.489886Z",
   "generator": "pub",
   "generatorVersion": "2.10.2"
 }
