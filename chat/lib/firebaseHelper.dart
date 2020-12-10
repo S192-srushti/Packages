@@ -63,11 +63,11 @@ Future<void> setRecentChatCardForBothUser(
     {String currentUserId,
     String currentUserName,
     String currentUserEmail,
-    String currentUserProfileUrl,
+    List<String> currentUserProfileUrl,
     String conversationUserId,
     String otherUserName,
     String otherUserEmail,
-    String otheruserProfileUrl}) async {
+    List<String> otheruserProfileUrl}) async {
   await FirebaseFirestore.instance
       .collection("users")
       .doc(currentUserId)
@@ -86,7 +86,7 @@ Future<void> setRecentChatCardForBothUser(
                     name: otherUserName,
                     email: otherUserEmail,
                     id: conversationUserId,
-                    profileUrl: [otheruserProfileUrl],
+                    profileUrl: otheruserProfileUrl,
                     pendingMsg: "",
                     pendingMsgWith: "",
                     lastMessage: "Start chatting",
@@ -123,7 +123,7 @@ Future<void> setRecentChatCardForBothUser(
                     name: currentUserName,
                     email: currentUserEmail,
                     id: currentUserId,
-                    profileUrl: [currentUserProfileUrl],
+                    profileUrl: currentUserProfileUrl,
                     pendingMsg: "",
                     pendingMsgWith: "",
                     lastMessage: "Start chatting",
