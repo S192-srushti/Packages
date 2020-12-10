@@ -1,6 +1,7 @@
 //RecentChatObj Object...
 
 part of chat;
+
 RecentChatObj recentChatObjFromJson(String str) =>
     RecentChatObj.fromJson(json.decode(str));
 
@@ -31,7 +32,7 @@ class RecentChatObj {
   String name;
   String email;
   String id;
-  String profileUrl;
+  List<dynamic> profileUrl;
   String pendingMsg;
   String pendingMsgWith;
   String lastMessage;
@@ -52,7 +53,7 @@ class RecentChatObj {
         name: json["name"] ?? "",
         email: json["email"] ?? "",
         id: json["id"] ?? "",
-        profileUrl: json["profileUrl"] ?? "",
+        profileUrl: json["profileUrl"] == null ? [] : json["profileUrl"],
         pendingMsg: json["pendingMsg"],
         pendingMsgWith: json["pendingMsgWith"] ?? "",
         lastMessage: json["lastMessage"] ?? "",
@@ -74,7 +75,7 @@ class RecentChatObj {
         "name": name ?? "",
         "email": email ?? "",
         "id": id ?? "",
-        "profileUrl": profileUrl ?? "",
+        "profileUrl": profileUrl,
         "pendingMsg": pendingMsg ?? "",
         "pendingMsgWith": pendingMsgWith ?? "",
         "lastMessage": lastMessage ?? "",

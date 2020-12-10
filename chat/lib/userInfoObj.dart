@@ -1,5 +1,5 @@
-
 part of chat;
+
 UserInfoObj userInfoObjFromJson(String str) =>
     str.isEmpty ? null : UserInfoObj.fromJson(json.decode(str));
 
@@ -26,7 +26,7 @@ class UserInfoObj {
   String type;
   List<dynamic> fcmId;
   String deviceId;
-  String profileUrl;
+  List<dynamic> profileUrl;
   List<dynamic> blockList = [];
 
   factory UserInfoObj.fromJson(Map<String, dynamic> json) => UserInfoObj(
@@ -38,7 +38,7 @@ class UserInfoObj {
         type: json["type"] ?? "",
         fcmId: json["fcm_id"],
         deviceId: json["device_id"] ?? "",
-        profileUrl: json["profileUrl"] ?? "",
+        profileUrl: json["profileUrl"] == null ? [] : json["profileUrl"],
         blockList: json["blockList"],
       );
 
@@ -51,7 +51,7 @@ class UserInfoObj {
         "type": type ?? "",
         "fcm_id": fcmId,
         "device_id": deviceId ?? "",
-        "profileUrl": profileUrl ?? "",
+        "profileUrl": profileUrl,
         "blockList": blockList,
       };
 }
