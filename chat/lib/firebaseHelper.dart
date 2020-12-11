@@ -1,29 +1,36 @@
 part of chat;
 
 //Add user to cloud firestore...
-Future<void> addUserToCloudFireStore(
-    {String userId,
-    String userEmail,
-    String userName,
-    String userProfileUrl,
-    List<String> fcmId}) async {
+Future<void> addUserToCloudFireStore({
+  Map<String, dynamic> userInfoMap,
+  String userId,
+  // String userEmail,
+  // String userName,
+  // String userProfileUrl,
+  // List<String> fcmId
+}) async {
   await FirebaseFirestore.instance
       .collection("users")
       .doc(userId)
       .get()
       .then((docSnapshot) async {
     if (!docSnapshot.exists) {
-      await FirebaseFirestore.instance.collection("users").doc(userId).set({
-        "id": userId,
-        "email": userEmail,
-        "name": userEmail,
-        "profileUrl": userProfileUrl,
-        "chattingWith": "",
-        "blockList": [],
-        "type": "single",
-        "status": "online",
-        "fcm_id": fcmId,
-      });
+      await FirebaseFirestore.instance
+          .collection("users")
+          .doc(userId)
+          .set(userInfoMap
+              //   {
+              //   "id": userId,
+              //   "email": userEmail,
+              //   "name": userEmail,
+              //   "profileUrl": userProfileUrl,
+              //   "chattingWith": "",
+              //   "blockList": [],
+              //   "type": "single",
+              //   "status": "online",
+              //   "fcm_id": fcmId,
+              // }
+              );
     }
   });
 }
@@ -61,13 +68,16 @@ Future<Stream<QuerySnapshot>> getAllUsersFromCloudFireStore() async {
 //Set recent chat card for current user and other user...
 Future<void> setRecentChatCardForBothUser(
     {String currentUserId,
-    String currentUserName,
-    String currentUserEmail,
-    List<String> currentUserProfileUrl,
+    // String currentUserName,
+    // String currentUserEmail,
+    // List<String> currentUserProfileUrl,
     String conversationUserId,
-    String otherUserName,
-    String otherUserEmail,
-    List<String> otheruserProfileUrl}) async {
+    Map<String, dynamic> mapOfCurrentUser,
+    Map<String, dynamic> mapOfConversationUser
+    // String otherUserName,
+    // String otherUserEmail,
+    // List<String> otheruserProfileUrl
+    }) async {
   await FirebaseFirestore.instance
       .collection("users")
       .doc(currentUserId)
@@ -81,28 +91,28 @@ Future<void> setRecentChatCardForBothUser(
           .doc(currentUserId)
           .collection("recent_chats")
           .doc(conversationUserId)
-          .set(
-            RecentChatObj(
-                    name: otherUserName,
-                    email: otherUserEmail,
-                    id: conversationUserId,
-                    profileUrl: otheruserProfileUrl,
-                    pendingMsg: "",
-                    pendingMsgWith: "",
-                    lastMessage: "Start chatting",
-                    lastMsgTime: null,
-                    type: "single",
-                    memberList: [currentUserId, conversationUserId],
-                    cardStatus: 1,
-                    typingStatus: 0,
-                    typingWith: "",
-                    isBlock: false,
-                    blockBy: "",
-                    blockList: [],
-                    status: "",
-                    count: 0)
-                .toJson(),
-          );
+          .set(mapOfConversationUser
+              // RecentChatObj(
+              //         name: otherUserName,
+              //         email: otherUserEmail,
+              //         id: conversationUserId,
+              //         profileUrl: otheruserProfileUrl,
+              //         pendingMsg: "",
+              //         pendingMsgWith: "",
+              //         lastMessage: "Start chatting",
+              //         lastMsgTime: null,
+              //         type: "single",
+              //         memberList: [currentUserId, conversationUserId],
+              //         cardStatus: 1,
+              //         typingStatus: 0,
+              //         typingWith: "",
+              //         isBlock: false,
+              //         blockBy: "",
+              //         blockList: [],
+              //         status: "",
+              //         count: 0)
+              //     .toJson(),
+              );
     }
   });
   await FirebaseFirestore.instance
@@ -118,28 +128,28 @@ Future<void> setRecentChatCardForBothUser(
           .doc(conversationUserId)
           .collection("recent_chats")
           .doc(currentUserId)
-          .set(
-            RecentChatObj(
-                    name: currentUserName,
-                    email: currentUserEmail,
-                    id: currentUserId,
-                    profileUrl: currentUserProfileUrl,
-                    pendingMsg: "",
-                    pendingMsgWith: "",
-                    lastMessage: "Start chatting",
-                    lastMsgTime: null,
-                    type: "single",
-                    memberList: [currentUserId, conversationUserId],
-                    cardStatus: 1,
-                    typingStatus: 0,
-                    typingWith: "",
-                    isBlock: false,
-                    blockBy: "",
-                    blockList: [],
-                    status: "",
-                    count: 0)
-                .toJson(),
-          );
+          .set(mapOfCurrentUser
+              // RecentChatObj(
+              //         name: currentUserName,
+              //         email: currentUserEmail,
+              //         id: currentUserId,
+              //         profileUrl: currentUserProfileUrl,
+              //         pendingMsg: "",
+              //         pendingMsgWith: "",
+              //         lastMessage: "Start chatting",
+              //         lastMsgTime: null,
+              //         type: "single",
+              //         memberList: [currentUserId, conversationUserId],
+              //         cardStatus: 1,
+              //         typingStatus: 0,
+              //         typingWith: "",
+              //         isBlock: false,
+              //         blockBy: "",
+              //         blockList: [],
+              //         status: "",
+              //         count: 0)
+              //     .toJson(),
+              );
     }
   });
 }
@@ -152,14 +162,19 @@ getChatId({String currentUserId, String conversationUserId}) {
 }
 
 //Set chattingwith...
-Future<void> setChattingWith(
-    {String currentUserId, String conversationUserId}) async {
+Future<void> setChattingWith({
+  String currentUserId,
+  Map<String, dynamic> mapOfChattingWith,
+  // String conversationUserId
+}) async {
   await FirebaseFirestore.instance
       .collection("users")
       .doc(currentUserId)
-      .update({
-    "chattingWith": conversationUserId,
-  });
+      .update(mapOfChattingWith
+          //       {
+          //   "chattingWith": conversationUserId,
+          // }
+          );
 }
 
 //Send message as Text...
@@ -168,6 +183,9 @@ Future<void> sendMessageAsText({
   String currentUserId,
   String conversationUserId,
   bool isForGroup = false,
+  List<String> groupMemberIdList,
+  String groupName,
+  String groupProfileUrl,
 }) async {
   String chatId = isForGroup
       ? conversationUserId
@@ -252,7 +270,31 @@ Future<void> sendMessageAsText({
       type: 0,
       message: message,
       toSend: conversationUserId);
-  if (isForGroup) {}
+  if (isForGroup) {
+    if (isForGroup) {
+      setLastMessageNLastMessageTimeForGroup(
+          currentUserId: currentUserId,
+          conversationUserId: conversationUserId,
+          type: 0,
+          message: "",
+          memberIdList: groupMemberIdList);
+      setPendingMessageForGroup(
+          currentUserId: currentUserId,
+          conversationUserId: conversationUserId,
+          memberIdList: groupMemberIdList);
+      sendNotificationForGroup(
+          currentUserId: currentUserId,
+          message: "",
+          conversationUserId: conversationUserId,
+          groupMemberIdList: groupMemberIdList,
+          groupName: groupName,
+          groupProfileurl: groupProfileUrl);
+      setCountOfPendingMessage(
+        currentUserId: currentUserId,
+        conversationUserId: conversationUserId,
+      );
+    }
+  }
 }
 
 //transaction demo method...
@@ -367,12 +409,14 @@ Future<void> _afterMessageSendActionsForSingleChat(
 }
 
 //Send message as image...
-Future<void> sendImageAsMessage({
-  String currentUserId,
-  String conversationUserId,
-  List<File> resultList,
-  bool isForGroup = false,
-}) async {
+Future<void> sendImageAsMessage(
+    {String currentUserId,
+    String conversationUserId,
+    List<File> resultList,
+    bool isForGroup = false,
+    String groupName,
+    String groupProfileUrl,
+    List<String> groupMemberIdList}) async {
   String chatId = isForGroup
       ? conversationUserId
       : getChatId(
@@ -474,7 +518,29 @@ Future<void> sendImageAsMessage({
       type: 1,
       message: "",
       toSend: conversationUserId);
-  if (isForGroup) {}
+  if (isForGroup) {
+    setLastMessageNLastMessageTimeForGroup(
+        currentUserId: currentUserId,
+        conversationUserId: conversationUserId,
+        type: 1,
+        message: "",
+        memberIdList: groupMemberIdList);
+    setPendingMessageForGroup(
+        currentUserId: currentUserId,
+        conversationUserId: conversationUserId,
+        memberIdList: groupMemberIdList);
+    sendNotificationForGroup(
+        currentUserId: currentUserId,
+        message: "",
+        conversationUserId: conversationUserId,
+        groupMemberIdList: groupMemberIdList,
+        groupName: groupName,
+        groupProfileurl: groupProfileUrl);
+    setCountOfPendingMessage(
+      currentUserId: currentUserId,
+      conversationUserId: conversationUserId,
+    );
+  }
 }
 
 //Post image to firebase storage for send image...
