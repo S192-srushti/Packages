@@ -188,6 +188,8 @@ Future<void> sendMessageAsText(
     {String message,
     String currentUserId,
     String conversationUserId,
+    String currentUserIdForChatId,
+    String conversationUserIdForChatId,
     bool isForGroup = false,
     List<String> groupMemberIdList,
     String groupName,
@@ -195,9 +197,10 @@ Future<void> sendMessageAsText(
     String chatRoomTableName,
     String chatTableName}) async {
   String chatId = isForGroup
-      ? conversationUserId
+      ? conversationUserIdForChatId
       : getChatId(
-          currentUserId: currentUserId, conversationUserId: conversationUserId);
+          currentUserId: currentUserIdForChatId,
+          conversationUserId: conversationUserIdForChatId);
 
   //String chatId = getChatId(userInfoObj.id, recentChatObj.id);
 
@@ -423,6 +426,8 @@ Future<void> _afterchatRoomTableNameendActionsForSingleChat(
 Future<void> sendImageAsMessage(
     {String currentUserId,
     String conversationUserId,
+    String currentUserIdForChatId,
+    String conversationUserIdForChatId,
     List<File> resultList,
     bool isForGroup = false,
     String groupName,
@@ -431,9 +436,10 @@ Future<void> sendImageAsMessage(
     String chatRoomTableName,
     String chatTableName}) async {
   String chatId = isForGroup
-      ? conversationUserId
+      ? conversationUserIdForChatId
       : getChatId(
-          currentUserId: currentUserId, conversationUserId: conversationUserId);
+          currentUserId: currentUserIdForChatId,
+          conversationUserId: conversationUserIdForChatId);
 
   //List<String> fileList = [];
   for (var imageFile in resultList) {
