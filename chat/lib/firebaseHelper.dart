@@ -1,22 +1,21 @@
 part of chat;
 
 //Add user to cloud firestore...
-Future<void> addUserToCloudFireStore({
-  Map<String, dynamic> userInfoMap,
-  String userId,
-  // String userEmail,
-  // String userName,
-  // String userProfileUrl,
-  // List<String> fcmId
-}) async {
+Future<void> addUserToCloudFireStore(
+    {Map<String, dynamic> userInfoMap, String userId, String userTableName
+    // String userEmail,
+    // String userName,
+    // String userProfileUrl,
+    // List<String> fcmId
+    }) async {
   await FirebaseFirestore.instance
-      .collection("users")
+      .collection(userTableName)
       .doc(userId)
       .get()
       .then((docSnapshot) async {
     if (!docSnapshot.exists) {
       await FirebaseFirestore.instance
-          .collection("users")
+          .collection(userTableName)
           .doc(userId)
           .set(userInfoMap
               //   {
@@ -51,16 +50,20 @@ Future<dynamic> setProfilePictureToFirebaseStorage({
 
 //Update profile picture...
 Future<void> updateProfileUrlToCloudFireStore(
-    {String userId, String userNewProfileUrl}) async {
-  await FirebaseFirestore.instance.collection("users").doc(userId).update({
+    {String userId, String userNewProfileUrl, String userTableName}) async {
+  await FirebaseFirestore.instance
+      .collection(userTableName)
+      .doc(userId)
+      .update({
     "profileUrl": userNewProfileUrl,
   });
 }
 
 //Get all users from cloud firestore...
-Future<Stream<QuerySnapshot>> getAllUsersFromCloudFireStore() async {
+Future<Stream<QuerySnapshot>> getAllUsersFromCloudFireStore(
+    {String userTableName}) async {
   return FirebaseFirestore.instance
-      .collection("users")
+      .collection(userTableName)
       .orderBy("id", descending: true)
       .snapshots();
 }
@@ -73,23 +76,25 @@ Future<void> setRecentChatCardForBothUser(
     // List<String> currentUserProfileUrl,
     String conversationUserId,
     Map<String, dynamic> mapOfCurrentUser,
-    Map<String, dynamic> mapOfConversationUser
+    Map<String, dynamic> mapOfConversationUser,
+    String recentChatTableName,
+    String userTableName
     // String otherUserName,
     // String otherUserEmail,
     // List<String> otheruserProfileUrl
     }) async {
   await FirebaseFirestore.instance
-      .collection("users")
+      .collection(userTableName)
       .doc(currentUserId)
-      .collection("recent_chats")
+      .collection(recentChatTableName)
       .doc(conversationUserId)
       .get()
       .then((value) async {
     if (!value.exists) {
       await FirebaseFirestore.instance
-          .collection("users")
+          .collection(userTableName)
           .doc(currentUserId)
-          .collection("recent_chats")
+          .collection(recentChatTableName)
           .doc(conversationUserId)
           .set(mapOfConversationUser
               // RecentChatObj(
@@ -116,17 +121,17 @@ Future<void> setRecentChatCardForBothUser(
     }
   });
   await FirebaseFirestore.instance
-      .collection("users")
+      .collection(userTableName)
       .doc(conversationUserId)
-      .collection("recent_chats")
+      .collection(recentChatTableName)
       .doc(currentUserId)
       .get()
       .then((value) async {
     if (!value.exists) {
       await FirebaseFirestore.instance
-          .collection("users")
+          .collection(userTableName)
           .doc(conversationUserId)
-          .collection("recent_chats")
+          .collection(recentChatTableName)
           .doc(currentUserId)
           .set(mapOfCurrentUser
               // RecentChatObj(
@@ -162,13 +167,14 @@ getChatId({String currentUserId, String conversationUserId}) {
 }
 
 //Set chattingwith...
-Future<void> setChattingWith({
-  String currentUserId,
-  Map<String, dynamic> mapOfChattingWith,
-  // String conversationUserId
-}) async {
+Future<void> setChattingWith(
+    {String currentUserId,
+    Map<String, dynamic> mapOfChattingWith,
+    String userTableName
+    // String conversationUserId
+    }) async {
   await FirebaseFirestore.instance
-      .collection("users")
+      .collection(userTableName)
       .doc(currentUserId)
       .update(mapOfChattingWith
           //       {
@@ -178,15 +184,16 @@ Future<void> setChattingWith({
 }
 
 //Send message as Text...
-Future<void> sendMessageAsText({
-  String message,
-  String currentUserId,
-  String conversationUserId,
-  bool isForGroup = false,
-  List<String> groupMemberIdList,
-  String groupName,
-  String groupProfileUrl,
-}) async {
+Future<void> sendMessageAsText(
+    {String message,
+    String currentUserId,
+    String conversationUserId,
+    bool isForGroup = false,
+    List<String> groupMemberIdList,
+    String groupName,
+    String groupProfileUrl,
+    String chatRoomTableName,
+    String chatTableName}) async {
   String chatId = isForGroup
       ? conversationUserId
       : getChatId(
@@ -195,9 +202,9 @@ Future<void> sendMessageAsText({
   //String chatId = getChatId(userInfoObj.id, recentChatObj.id);
 
   await FirebaseFirestore.instance
-      .collection("messages")
+      .collection(chatRoomTableName)
       .doc(chatId)
-      .collection("chats")
+      .collection(chatTableName)
       .where("chatDate",
           isEqualTo: DateFormat('dd MMMM yyyy').format(DateTime.now().toUtc()))
       .get()
@@ -205,9 +212,9 @@ Future<void> sendMessageAsText({
     if (value.docs.isNotEmpty) {
       List<dynamic> messageList = [];
       await FirebaseFirestore.instance
-          .collection("messages")
+          .collection(chatRoomTableName)
           .doc(chatId)
-          .collection("chats")
+          .collection(chatTableName)
           .where("chatDate",
               isEqualTo:
                   DateFormat('dd MMMM yyyy').format(DateTime.now().toUtc()))
@@ -230,9 +237,9 @@ Future<void> sendMessageAsText({
                   "isDownloaded": false,
                 });
                 await FirebaseFirestore.instance
-                    .collection("messages")
+                    .collection(chatRoomTableName)
                     .doc(chatId)
-                    .collection("chats")
+                    .collection(chatTableName)
                     .doc(element.id)
                     .update({
                   "messageObj": messageList,
@@ -240,9 +247,9 @@ Future<void> sendMessageAsText({
               }));
     } else {
       await FirebaseFirestore.instance
-          .collection("messages")
+          .collection(chatRoomTableName)
           .doc(chatId)
-          .collection("chats")
+          .collection(chatTableName)
           .add({
         "time": DateTime.now().toUtc().millisecondsSinceEpoch,
         "chatDate": DateFormat('dd MMMM yyyy').format(DateTime.now().toUtc()),
@@ -264,7 +271,7 @@ Future<void> sendMessageAsText({
     }
   });
 
-  _afterMessageSendActionsForSingleChat(
+  _afterchatRoomTableNameendActionsForSingleChat(
       currentUserId: currentUserId,
       conversationUserId: conversationUserId,
       type: 0,
@@ -298,43 +305,47 @@ Future<void> sendMessageAsText({
 }
 
 //transaction demo method...
-Future<void> _afterMessageSendActionsForSingleChat(
+Future<void> _afterchatRoomTableNameendActionsForSingleChat(
     {String currentUserId,
     String conversationUserId,
     int type,
     String toSend,
-    String message}) async {
+    String message,
+    String recentChatTableName,
+    String userTableName}) async {
   await FirebaseFirestore.instance.runTransaction((transaction) async {
-    DocumentSnapshot documentSnapshot = await transaction.get(
-        FirebaseFirestore.instance.collection("users").doc(conversationUserId));
+    DocumentSnapshot documentSnapshot = await transaction.get(FirebaseFirestore
+        .instance
+        .collection(userTableName)
+        .doc(conversationUserId));
     DocumentSnapshot documentForGetCount = await transaction.get(
         FirebaseFirestore.instance
-            .collection("users")
+            .collection(userTableName)
             .doc(conversationUserId)
-            .collection("recent_chats")
+            .collection(recentChatTableName)
             .doc(currentUserId));
     //Re set recent chat for both users group and single user...
     transaction.update(
         FirebaseFirestore.instance
-            .collection("users")
+            .collection(userTableName)
             .doc(currentUserId)
-            .collection("recent_chats")
+            .collection(recentChatTableName)
             .doc(conversationUserId),
         {"cardStatus": 1});
     transaction.update(
         FirebaseFirestore.instance
-            .collection("users")
+            .collection(userTableName)
             .doc(conversationUserId)
-            .collection("recent_chats")
+            .collection(recentChatTableName)
             .doc(currentUserId),
         {"cardStatus": 1});
 
     //Set last message for other user...
     transaction.update(
         FirebaseFirestore.instance
-            .collection("users")
+            .collection(userTableName)
             .doc(conversationUserId)
-            .collection("recent_chats")
+            .collection(recentChatTableName)
             .doc(currentUserId),
         {
           "lastMessage": type == 0 ? message : "You recieved photo",
@@ -343,9 +354,9 @@ Future<void> _afterMessageSendActionsForSingleChat(
     //Set last message for current user...
     transaction.update(
         FirebaseFirestore.instance
-            .collection("users")
+            .collection(userTableName)
             .doc(currentUserId)
-            .collection("recent_chats")
+            .collection(recentChatTableName)
             .doc(conversationUserId),
         {
           "lastMessage": type == 0 ? message : "You sent a photo",
@@ -355,7 +366,7 @@ Future<void> _afterMessageSendActionsForSingleChat(
     if (toSend == conversationUserId) {
       transaction.set(
           FirebaseFirestore.instance
-              .collection("users")
+              .collection(userTableName)
               .doc(conversationUserId)
               .collection("notifications")
               .doc(),
@@ -367,7 +378,7 @@ Future<void> _afterMessageSendActionsForSingleChat(
     } else {
       transaction.set(
           FirebaseFirestore.instance
-              .collection("users")
+              .collection(userTableName)
               .doc(currentUserId)
               .collection("notifications")
               .doc(),
@@ -381,9 +392,9 @@ Future<void> _afterMessageSendActionsForSingleChat(
     if (documentSnapshot.data()["chattingWith"] != currentUserId) {
       transaction.update(
           FirebaseFirestore.instance
-              .collection("users")
+              .collection(userTableName)
               .doc(conversationUserId)
-              .collection("recent_chats")
+              .collection(recentChatTableName)
               .doc(currentUserId),
           {
             "pendingMsg": "true",
@@ -397,9 +408,9 @@ Future<void> _afterMessageSendActionsForSingleChat(
       count++;
       transaction.update(
           FirebaseFirestore.instance
-              .collection("users")
+              .collection(userTableName)
               .doc(conversationUserId)
-              .collection("recent_chats")
+              .collection(recentChatTableName)
               .doc(currentUserId),
           {
             "count": count,
@@ -416,7 +427,9 @@ Future<void> sendImageAsMessage(
     bool isForGroup = false,
     String groupName,
     String groupProfileUrl,
-    List<String> groupMemberIdList}) async {
+    List<String> groupMemberIdList,
+    String chatRoomTableName,
+    String chatTableName}) async {
   String chatId = isForGroup
       ? conversationUserId
       : getChatId(
@@ -430,9 +443,9 @@ Future<void> sendImageAsMessage(
       String senderPath = imageFile.path;
       //Send Message as a image...
       await FirebaseFirestore.instance
-          .collection("messages")
+          .collection(chatRoomTableName)
           .doc(chatId)
-          .collection("chats")
+          .collection(chatTableName)
           .where("chatDate",
               isEqualTo:
                   DateFormat('dd MMMM yyyy').format(DateTime.now().toUtc()))
@@ -441,9 +454,9 @@ Future<void> sendImageAsMessage(
         if (value.docs.isNotEmpty) {
           List<dynamic> messageList = [];
           await FirebaseFirestore.instance
-              .collection("messages")
+              .collection(chatRoomTableName)
               .doc(chatId)
-              .collection("chats")
+              .collection(chatTableName)
               .where("chatDate",
                   isEqualTo:
                       DateFormat('dd MMMM yyyy').format(DateTime.now().toUtc()))
@@ -469,9 +482,9 @@ Future<void> sendImageAsMessage(
                     });
 
                     await FirebaseFirestore.instance
-                        .collection("messages")
+                        .collection(chatRoomTableName)
                         .doc(chatId)
-                        .collection("chats")
+                        .collection(chatTableName)
                         .doc(element.id)
                         .update({
                       "messageObj": messageList,
@@ -494,9 +507,9 @@ Future<void> sendImageAsMessage(
           });
 
           await FirebaseFirestore.instance
-              .collection("messages")
+              .collection(chatRoomTableName)
               .doc(chatId)
-              .collection("chats")
+              .collection(chatTableName)
               .add({
             "time": DateTime.now().toUtc().millisecondsSinceEpoch,
             "chatDate":
@@ -512,7 +525,7 @@ Future<void> sendImageAsMessage(
     });
   }
 
-  _afterMessageSendActionsForSingleChat(
+  _afterchatRoomTableNameendActionsForSingleChat(
       currentUserId: currentUserId,
       conversationUserId: conversationUserId,
       type: 1,
@@ -567,9 +580,10 @@ Future<dynamic> postImageForSend(
 }
 
 //Chatting with empty...
-Future<void> chattingWithEmpty({String currentUserId}) async {
+Future<void> chattingWithEmpty(
+    {String currentUserId, String userTableName}) async {
   await FirebaseFirestore.instance
-      .collection("users")
+      .collection(userTableName)
       .doc(currentUserId)
       .update({
     "chattingWith": "",
@@ -578,18 +592,21 @@ Future<void> chattingWithEmpty({String currentUserId}) async {
 
 //Remove Pending Message...
 Future<void> removePendingMessage(
-    {String currentUserId, String conversationUserId}) async {
+    {String currentUserId,
+    String conversationUserId,
+    String recentChatTableName,
+    String userTableName}) async {
   await FirebaseFirestore.instance
-      .collection("users")
+      .collection(userTableName)
       .doc(currentUserId)
-      .collection("recent_chats")
+      .collection(recentChatTableName)
       .get()
       .then((value) async {
     if (value.docs.isNotEmpty) {
       await FirebaseFirestore.instance
-          .collection("users")
+          .collection(userTableName)
           .doc(currentUserId)
-          .collection("recent_chats")
+          .collection(recentChatTableName)
           .doc(conversationUserId)
           .update({
         "pendingMsg": "false",
@@ -607,13 +624,15 @@ void setLastMessageNLastMessageTimeForGroup(
     String conversationUserId,
     List<String> memberIdList,
     int type,
-    String message}) {
+    String message,
+    String recentChatTableName,
+    String userTableName}) {
   memberIdList.forEach((element) async {
     if (element != currentUserId) {
       await FirebaseFirestore.instance
-          .collection("users")
+          .collection(userTableName)
           .doc(element)
-          .collection("recent_chats")
+          .collection(recentChatTableName)
           .doc(conversationUserId)
           .update({
         "lastMessage": type == 0 ? message : "You recieved photo",
@@ -621,9 +640,9 @@ void setLastMessageNLastMessageTimeForGroup(
       });
     } else {
       await FirebaseFirestore.instance
-          .collection("users")
+          .collection(userTableName)
           .doc(element)
-          .collection("recent_chats")
+          .collection(recentChatTableName)
           .doc(conversationUserId)
           .update({
         "lastMessage": type == 0 ? message : "you sent a Photo",
@@ -635,11 +654,14 @@ void setLastMessageNLastMessageTimeForGroup(
 
 //Set count is zero...
 Future<void> setCountOfPendingMessage(
-    {String currentUserId, String conversationUserId}) async {
+    {String currentUserId,
+    String conversationUserId,
+    String recentChatTableName,
+    String userTableName}) async {
   await FirebaseFirestore.instance
-      .collection("users")
+      .collection(userTableName)
       .doc(currentUserId)
-      .collection("recent_chats")
+      .collection(recentChatTableName)
       .doc(conversationUserId)
       .update({
     "count": 0,
@@ -651,13 +673,15 @@ Future<void> isTypingSetToOtherUser(
     {String currentUserId,
     String conversationUserId,
     bool isForGroup = false,
-    List<String> memberIdList}) async {
+    List<String> memberIdList,
+    String recentChatTableName,
+    String userTableName}) async {
   isForGroup
       ? memberIdList.forEach((element) async {
           await FirebaseFirestore.instance
-              .collection("users")
+              .collection(userTableName)
               .doc(element)
-              .collection("recent_chats")
+              .collection(recentChatTableName)
               .doc(conversationUserId)
               .update({
             "typingStatus": 1,
@@ -665,9 +689,9 @@ Future<void> isTypingSetToOtherUser(
           });
         })
       : await FirebaseFirestore.instance
-          .collection("users")
+          .collection(userTableName)
           .doc(conversationUserId)
-          .collection("recent_chats")
+          .collection(recentChatTableName)
           .doc(currentUserId)
           .update({
           "typingStatus": 1,
@@ -680,13 +704,15 @@ Future<void> isTypingRemoveToOtherUser(
     {String currentUserId,
     String conversationUserId,
     bool isForGroup = false,
-    List<String> memberIdList}) async {
+    List<String> memberIdList,
+    String recentChatTableName,
+    String userTableName}) async {
   isForGroup
       ? memberIdList.forEach((element) async {
           await FirebaseFirestore.instance
-              .collection("users")
+              .collection(userTableName)
               .doc(element)
-              .collection("recent_chats")
+              .collection(recentChatTableName)
               .doc(conversationUserId)
               .update({
             "typingStatus": 0,
@@ -694,9 +720,9 @@ Future<void> isTypingRemoveToOtherUser(
           });
         })
       : await FirebaseFirestore.instance
-          .collection("users")
+          .collection(userTableName)
           .doc(conversationUserId)
-          .collection("recent_chats")
+          .collection(recentChatTableName)
           .doc(currentUserId)
           .update({
           "typingStatus": 0,
@@ -705,9 +731,10 @@ Future<void> isTypingRemoveToOtherUser(
 }
 
 //set Online status...
-Future<void> statusSetOnline({String currentUserId}) async {
+Future<void> statusSetOnline(
+    {String currentUserId, String userTableName}) async {
   await FirebaseFirestore.instance
-      .collection("users")
+      .collection(userTableName)
       .doc(currentUserId)
       .update({
     "status": "online",
@@ -715,9 +742,10 @@ Future<void> statusSetOnline({String currentUserId}) async {
 }
 
 //set Offline status...
-Future<void> statusSetOffline({String currentUserId}) async {
+Future<void> statusSetOffline(
+    {String currentUserId, String userTableName}) async {
   await FirebaseFirestore.instance
-      .collection("users")
+      .collection(userTableName)
       .doc(currentUserId)
       .update({
     "status": "offline",
@@ -726,34 +754,42 @@ Future<void> statusSetOffline({String currentUserId}) async {
 
 //Get chats...
 Future<Stream<QuerySnapshot>> getChats(
-    {String currentUserid, String conversationUserId, bool isForGroup}) async {
+    {String currentUserid,
+    String conversationUserId,
+    bool isForGroup,
+    String chatRoomTableName,
+    String chatTableName}) async {
   String chatId = isForGroup
       ? conversationUserId
       : getChatId(
           currentUserId: currentUserid, conversationUserId: conversationUserId);
 
   return FirebaseFirestore.instance
-      .collection("messages")
+      .collection(chatRoomTableName)
       .doc(chatId)
-      .collection("chats")
+      .collection(chatTableName)
       .orderBy("time", descending: true)
       .snapshots();
 }
 
-//Clear messages for me...
-Future<void> clearMessagesForOnlyOneUser(
+//Clear chatRoomTableName for me...
+Future<void> clearchatRoomTableNameForOnlyOneUser(
     {String currentUserId,
     String conversationUserId,
-    bool isForGroup = false}) async {
+    String recentChatTableName,
+    bool isForGroup = false,
+    String chatTableName,
+    String userTableName,
+    String chatRoomTableName}) async {
   String chatId = isForGroup
       ? conversationUserId
       : getChatId(
           currentUserId: currentUserId, conversationUserId: conversationUserId);
   List<dynamic> updatedList = [];
   await FirebaseFirestore.instance
-      .collection("messages")
+      .collection(chatRoomTableName)
       .doc(chatId)
-      .collection("chats")
+      .collection(chatTableName)
       .orderBy("time", descending: true)
       .get()
       .then((doclist) => doclist.docs.forEach((element1) async {
@@ -785,17 +821,17 @@ Future<void> clearMessagesForOnlyOneUser(
             });
             print(updatedList);
             await FirebaseFirestore.instance
-                .collection("messages")
+                .collection(chatRoomTableName)
                 .doc(chatId)
-                .collection("chats")
+                .collection(chatTableName)
                 .doc(element1.id)
                 .update({"messageObj": updatedList});
           }));
 
   await FirebaseFirestore.instance
-      .collection("users")
+      .collection(userTableName)
       .doc(currentUserId)
-      .collection("recent_chats")
+      .collection(recentChatTableName)
       .doc(conversationUserId)
       .update({
     "lastMessage": "",
@@ -805,19 +841,22 @@ Future<void> clearMessagesForOnlyOneUser(
 
 //Block unblock user...
 Future<void> blockUnblockUser(
-    {String currentUserId, String conversationUserId}) async {
+    {String currentUserId,
+    String conversationUserId,
+    String recentChatTableName,
+    String userTableName}) async {
   //Set block unblock in firestore for current user...
   await FirebaseFirestore.instance
-      .collection("users")
+      .collection(userTableName)
       .doc(currentUserId)
-      .collection("recent_chats")
+      .collection(recentChatTableName)
       .doc(conversationUserId)
       .get()
       .then((value) async {
     await FirebaseFirestore.instance
-        .collection("users")
+        .collection(userTableName)
         .doc(currentUserId)
-        .collection("recent_chats")
+        .collection(recentChatTableName)
         .doc(conversationUserId)
         .update({
       "isBlock": !value.data()["isBlock"],
@@ -826,23 +865,23 @@ Future<void> blockUnblockUser(
   });
   //Set block unblock in firestore for current user...
   await FirebaseFirestore.instance
-      .collection("users")
+      .collection(userTableName)
       .doc(conversationUserId)
-      .collection("recent_chats")
+      .collection(recentChatTableName)
       .doc(currentUserId)
       .get()
       .then((value) async {
     await FirebaseFirestore.instance
-        .collection("users")
+        .collection(userTableName)
         .doc(conversationUserId)
-        .collection("recent_chats")
+        .collection(recentChatTableName)
         .doc(currentUserId)
         .update({"isBlock": !value.data()["isBlock"], "blockBy": ""});
   });
   //Set blocklist of current user...
   List<dynamic> blockList = [];
   await FirebaseFirestore.instance
-      .collection("users")
+      .collection(userTableName)
       .doc(currentUserId)
       .get()
       .then((value) {
@@ -860,7 +899,7 @@ Future<void> blockUnblockUser(
   index < 0 ? blockList.add(conversationUserId) : blockList.removeAt(index);
 
   await FirebaseFirestore.instance
-      .collection("users")
+      .collection(userTableName)
       .doc(currentUserId)
       .update({
     "blockList": blockList,
@@ -869,7 +908,7 @@ Future<void> blockUnblockUser(
 //Set blocklist of other user...
   List<dynamic> blockListOfOtherUser = [];
   await FirebaseFirestore.instance
-      .collection("users")
+      .collection(userTableName)
       .doc(conversationUserId)
       .get()
       .then((value) {
@@ -890,7 +929,7 @@ Future<void> blockUnblockUser(
       : blockListOfOtherUser.removeAt(index1);
 
   await FirebaseFirestore.instance
-      .collection("users")
+      .collection(userTableName)
       .doc(conversationUserId)
       .update({
     "blockList": blockListOfOtherUser,
@@ -905,12 +944,15 @@ getGroupChatId(List<String> groupmemberIdList) {
 }
 
 Future<void> deleteConversationCard(
-    {String currentUserId, String conversationUserId}) async {
-  clearMessagesForOnlyOneUser();
+    {String currentUserId,
+    String conversationUserId,
+    String recentChatTableName,
+    String userTableName}) async {
+  clearchatRoomTableNameForOnlyOneUser();
   await FirebaseFirestore.instance
-      .collection("users")
+      .collection(userTableName)
       .doc(currentUserId)
-      .collection("recent_chats")
+      .collection(recentChatTableName)
       .doc(conversationUserId)
       .update({"cardStatus": 0});
 }
@@ -919,21 +961,23 @@ Future<void> deleteConversationCard(
 void setPendingMessageForGroup(
     {String currentUserId,
     String conversationUserId,
-    List<String> memberIdList}) {
+    List<String> memberIdList,
+    String recentChatTableName,
+    String userTableName}) {
   //String groupChatId = getGroupChatId(recentChatObj.memberList);
 
   memberIdList.forEach((element) async {
     if (element != currentUserId) {
       await FirebaseFirestore.instance
-          .collection("users")
+          .collection(userTableName)
           .doc(element)
           .get()
           .then((value) async {
         if (value.data()["chattingWith"] != currentUserId) {
           await FirebaseFirestore.instance
-              .collection("users")
+              .collection(userTableName)
               .doc(element)
-              .collection("recent_chats")
+              .collection(recentChatTableName)
               .doc(conversationUserId)
               .update({
             "pendingMsg": "true",
@@ -950,11 +994,14 @@ Future<void> createGroup(
     {String currentuserId,
     List<dynamic> groupMemberIdList,
     String groupName,
-    String groupProfileUrl}) async {
+    String groupProfileUrl,
+    String recentChatTableName,
+    String userTableName,
+    String groupTableName}) async {
   //Create group chat id...
   String groupChatId = getGroupChatId(groupMemberIdList);
   String id;
-  await FirebaseFirestore.instance.collection("groups").add(RecentChatObj(
+  await FirebaseFirestore.instance.collection(groupTableName).add(RecentChatObj(
         name: groupName,
         email: "",
         id: groupChatId,
@@ -975,13 +1022,13 @@ Future<void> createGroup(
         count: 0,
       ).toJson());
   QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-      .collection("groups")
+      .collection(groupTableName)
       .where("id", isEqualTo: groupChatId)
       .get();
   querySnapshot.docs.forEach((element) async {
     id = element.id;
     await FirebaseFirestore.instance
-        .collection("groups")
+        .collection(groupTableName)
         .doc(element.id)
         .update({"id": element.id});
   });
@@ -989,9 +1036,9 @@ Future<void> createGroup(
   groupMemberIdList.forEach((element) async {
     //Add group card in all members of group...
     await FirebaseFirestore.instance
-        .collection("users")
+        .collection(userTableName)
         .doc(element)
-        .collection("recent_chats")
+        .collection(recentChatTableName)
         .doc(id)
         .set(RecentChatObj(
           name: groupName,
@@ -1016,34 +1063,38 @@ Future<void> createGroup(
   });
 }
 
-//Clear messages for everyone...
-Future<void> clearMessagesForEveryOne(
+//Clear chatRoomTableName for everyone...
+Future<void> clearchatRoomTableNameForEveryOne(
     {bool isForGroup = false,
     String currentUserId,
-    String conversationUserId}) async {
+    String conversationUserId,
+    String recentChatTableName,
+    String userTableName,
+    String chatRoomTableName,
+    String chatTableName}) async {
   String chatId = isForGroup
       ? conversationUserId
       : getChatId(
           currentUserId: currentUserId, conversationUserId: conversationUserId);
 
   await FirebaseFirestore.instance
-      .collection("messages")
+      .collection(chatRoomTableName)
       .doc(chatId)
-      .collection("chats")
+      .collection(chatTableName)
       .get()
       .then((documentsList) => documentsList.docs.forEach((element) async {
             await FirebaseFirestore.instance
-                .collection("messages")
+                .collection(chatRoomTableName)
                 .doc(chatId)
-                .collection("chats")
+                .collection(chatTableName)
                 .doc(element.id)
                 .delete();
           }));
 
   await FirebaseFirestore.instance
-      .collection("users")
+      .collection(userTableName)
       .doc(conversationUserId)
-      .collection("recent_chats")
+      .collection(recentChatTableName)
       .doc(currentUserId)
       .update({
     "lastMessage": "",
@@ -1051,9 +1102,9 @@ Future<void> clearMessagesForEveryOne(
   });
 
   await FirebaseFirestore.instance
-      .collection("users")
+      .collection(userTableName)
       .doc(currentUserId)
-      .collection("recent_chats")
+      .collection(recentChatTableName)
       .doc(conversationUserId)
       .update({
     "lastMessage": "",
@@ -1065,7 +1116,10 @@ Future<void> clearMessagesForEveryOne(
 Future<void> exitGroup(
     {String currentUserId,
     String conversationUserId,
-    List<String> groupMemberIdList}) async {
+    List<String> groupMemberIdList,
+    String recentChatTableName,
+    String userTableName,
+    String groupTableName}) async {
   //create new member list without current user who wants to exit group...
   List<dynamic> newuserList = [];
   groupMemberIdList.forEach((element) {
@@ -1076,16 +1130,16 @@ Future<void> exitGroup(
 
   groupMemberIdList.forEach((element) async {
     await FirebaseFirestore.instance
-        .collection("users")
+        .collection(userTableName)
         .doc(element)
-        .collection("recent_chats")
+        .collection(recentChatTableName)
         .doc(conversationUserId)
         .update({
       "memberList": newuserList,
     });
   });
   await FirebaseFirestore.instance
-      .collection("groups")
+      .collection(groupTableName)
       .doc(conversationUserId)
       .update({
     "memberList": newuserList,
@@ -1099,7 +1153,10 @@ Future<void> addMemberInGroup(
     String groupName,
     String groupProfileUrl,
     List<String> currentgroupMemberIdList,
-    List<String> newMemberIdList}) async {
+    List<String> newMemberIdList,
+    String recentChatTableName,
+    String userTableName,
+    String groupTableName}) async {
   List<dynamic> userList = [];
   newMemberIdList.forEach((element) {
     userList.add(element);
@@ -1109,16 +1166,16 @@ Future<void> addMemberInGroup(
   });
   currentgroupMemberIdList.forEach((element) async {
     await FirebaseFirestore.instance
-        .collection("users")
+        .collection(userTableName)
         .doc(element)
-        .collection("recent_chats")
+        .collection(recentChatTableName)
         .doc(conversationUserId)
         .update({
       "memberList": userList,
     });
   });
   await FirebaseFirestore.instance
-      .collection("groups")
+      .collection(groupTableName)
       .doc(conversationUserId)
       .update({
     "memberList": userList,
@@ -1126,9 +1183,9 @@ Future<void> addMemberInGroup(
 
   newMemberIdList.forEach((element) async {
     await FirebaseFirestore.instance
-        .collection("users")
+        .collection(userTableName)
         .doc(element)
-        .collection("recent_chats")
+        .collection(recentChatTableName)
         .doc(conversationUserId)
         .set(RecentChatObj(
                 name: groupName,
@@ -1158,13 +1215,15 @@ Future<void> sendNotificationForGroup(
     String groupName,
     String groupProfileurl,
     List<String> groupMemberIdList,
+    String userTableName,
+    String groupTableName,
     String message}) async {
   List<dynamic> fcmIdList = [];
   for (int i = 0; i < groupMemberIdList.length; i++) {
     String memberUserId = groupMemberIdList[i];
     if (memberUserId != currentUserId) {
       DocumentSnapshot documentSnapshot = await FirebaseFirestore.instance
-          .collection("users")
+          .collection(userTableName)
           .doc(memberUserId)
           .get();
       print(documentSnapshot.data());
@@ -1174,7 +1233,7 @@ Future<void> sendNotificationForGroup(
   print(fcmIdList);
   if (fcmIdList.isNotEmpty) {
     await FirebaseFirestore.instance
-        .collection("groups")
+        .collection(groupTableName)
         .doc(conversationUserId)
         .collection("notifications")
         .doc()
@@ -1214,15 +1273,17 @@ Future<void> isDownloaded(
     String sendBy,
     String type,
     String path,
-    bool isForGroup}) async {
+    bool isForGroup,
+    String chatRoomTableName,
+    String chatTableName}) async {
   String chatId = isForGroup
       ? toSend
       : getChatId(currentUserId: sendBy, conversationUserId: toSend);
   List<dynamic> updatedList = [];
   await FirebaseFirestore.instance
-      .collection("messages")
+      .collection(chatRoomTableName)
       .doc(chatId)
-      .collection("chats")
+      .collection(chatTableName)
       .orderBy("time", descending: true)
       .get()
       .then((doclist) => doclist.docs.forEach((element1) async {
@@ -1262,20 +1323,21 @@ Future<void> isDownloaded(
             });
             print(updatedList);
             await FirebaseFirestore.instance
-                .collection("messages")
+                .collection(chatRoomTableName)
                 .doc(chatId)
-                .collection("chats")
+                .collection(chatTableName)
                 .doc(element1.id)
                 .update({"messageObjList": updatedList});
           }));
 }
 
 //Get recentChat...
-Stream<QuerySnapshot> getRecentChat({String currentUserId}) {
+Stream<QuerySnapshot> getRecentChat(
+    {String currentUserId, String recentChatTableName, String userTableName}) {
   return FirebaseFirestore.instance
-      .collection("users")
+      .collection(userTableName)
       .doc(currentUserId)
-      .collection("recent_chats")
+      .collection(recentChatTableName)
       .orderBy("lastMsgTime", descending: true)
       .where("cardStatus", isEqualTo: 1)
       .snapshots();
