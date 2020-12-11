@@ -184,19 +184,21 @@ Future<void> setChattingWith(
 }
 
 //Send message as Text...
-Future<void> sendMessageAsText(
-    {String message,
-    String currentUserId,
-    String conversationUserId,
-    String currentUserIdForChatId,
-    String conversationUserIdForChatId,
-    bool isForGroup = false,
-    List<String> groupMemberIdList,
-    String groupName,
-    String groupProfileUrl,
-    String chatRoomTableName,
-    String chatTableName,
-    String userTableName}) async {
+Future<void> sendMessageAsText({
+  String message,
+  String currentUserId,
+  String conversationUserId,
+  String currentUserIdForChatId,
+  String conversationUserIdForChatId,
+  bool isForGroup = false,
+  List<String> groupMemberIdList,
+  String groupName,
+  String groupProfileUrl,
+  String chatRoomTableName,
+  String chatTableName,
+  String userTableName,
+  String recentChatTableName,
+}) async {
   String chatId = isForGroup
       ? conversationUserIdForChatId
       : getChatId(
@@ -281,7 +283,8 @@ Future<void> sendMessageAsText(
       type: 0,
       message: message,
       toSend: conversationUserId,
-      userTableName: userTableName);
+      userTableName: userTableName,
+      recentChatTableName: recentChatTableName);
   if (isForGroup) {
     if (isForGroup) {
       setLastMessageNLastMessageTimeForGroup(
@@ -437,7 +440,8 @@ Future<void> sendImageAsMessage(
     List<String> groupMemberIdList,
     String chatRoomTableName,
     String chatTableName,
-    String userTableName}) async {
+    String userTableName,
+    String recentChatTableName}) async {
   String chatId = isForGroup
       ? conversationUserIdForChatId
       : getChatId(
@@ -540,7 +544,8 @@ Future<void> sendImageAsMessage(
       type: 1,
       message: "",
       toSend: conversationUserId,
-      userTableName: userTableName);
+      userTableName: userTableName,
+      recentChatTableName: recentChatTableName);
   if (isForGroup) {
     setLastMessageNLastMessageTimeForGroup(
         currentUserId: currentUserId,
