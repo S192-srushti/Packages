@@ -433,7 +433,7 @@ Future<void> sendImageAsMessage(
     String conversationUserId,
     String currentUserIdForChatId,
     String conversationUserIdForChatId,
-    List<File> resultList,
+    List<Asset> resultList,
     bool isForGroup = false,
     String groupName,
     String groupProfileUrl,
@@ -453,7 +453,9 @@ Future<void> sendImageAsMessage(
     await postImageForSend(
       imageFile: imageFile,
     ).then((downloadUrl) async {
-      String senderPath = imageFile.path;
+      String senderPath =
+          await FlutterAbsolutePath.getAbsolutePath(imageFile.identifier);
+
       //Send Message as a image...
       await FirebaseFirestore.instance
           .collection(chatRoomTableName)
@@ -573,7 +575,7 @@ Future<void> sendImageAsMessage(
 
 //Post image to firebase storage for send image...
 Future<dynamic> postImageForSend(
-    {File imageFile,
+    {Asset imageFile,
     String currentUserId,
     String conversationUserId,
     bool isFroGroup = false}) async {
@@ -589,7 +591,8 @@ Future<dynamic> postImageForSend(
   firebase_storage.Reference reference =
       firebase_storage.FirebaseStorage.instance.ref().child(
           isFroGroup ? "$conversationUserId/$fileName" : "$chatId/$fileName");
-  await reference.putData((imageFile.readAsBytesSync()));
+  await reference
+      .putData((await imageFile.getByteData(quality: 85)).buffer.asUint8List());
   // firebase_storage.TaskSnapshot taskSnapshot = uploadTask.snapshot;
   return await reference.getDownloadURL();
 }

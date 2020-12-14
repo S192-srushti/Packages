@@ -15,6 +15,8 @@ dependencies:
   firebase_storage: ^5.1.0
   path_provider: ^1.6.24
   intl: ^0.16.1
+  multi_image_picker: ^4.7.14
+  flutter_absolute_path: ^1.0.6
 
 dev_dependencies:
   flutter_test:
