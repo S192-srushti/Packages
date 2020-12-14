@@ -451,6 +451,8 @@ Future<void> sendImageAsMessage(
   //List<String> fileList = [];
   for (var imageFile in resultList) {
     await postImageForSend(
+      currentUserId: currentUserIdForChatId,
+      conversationUserId: conversationUserIdForChatId,
       imageFile: imageFile,
     ).then((downloadUrl) async {
       String senderPath =
